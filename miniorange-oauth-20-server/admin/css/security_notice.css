@@ -1,0 +1,31 @@
+/*css for security notice.*/
+.mo_security_banner{
+    margin-top:1%; 
+    margin-left:unset;
+}
+
+.mo_security_banner_header{
+    display:flex; 
+    align-items: center;
+}
+
+.mo_logo{
+    float:left; 
+    margin:5px 5px 0px 0px;
+}
+
+.mo_security_banner_header_text{
+    display: block; 
+    font-size: 15px; 
+    margin: 0.3em; 
+    font-weight: bold;
+}
+
+.mo_dismiss_security_banner{
+    margin-left:auto !important; 
+    align-self:center;
+}
+
+.mo_dismiss_security_banner:hover{
+    background-color:red !important;
+}
