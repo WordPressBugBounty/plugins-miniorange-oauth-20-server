@@ -32,13 +32,7 @@ class Miniorange_Oauth_20_Server_i18n { //phpcs:ignore
 	 * @since    1.0.0
 	 */
 	public function load_plugin_textdomain() {
-
-		load_plugin_textdomain(
-			'miniorange-oauth-20-server',
-			false,
-			dirname( dirname( plugin_basename( __FILE__ ) ) ) . '/languages/'
-		);
-
+		// WordPress 4.6+ automatically loads translations for WP.org-hosted plugins.
 	}
 
 

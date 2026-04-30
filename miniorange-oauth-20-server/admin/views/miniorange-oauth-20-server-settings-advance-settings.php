@@ -1,4 +1,5 @@
 <?php
+if ( ! defined( 'ABSPATH' ) ) exit;
 /**
  * Provide a general settings such as enforce state parameter, OpenID support etc. view for the plugin.
  *

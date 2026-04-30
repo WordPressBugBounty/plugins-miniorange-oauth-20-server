@@ -1,4 +1,5 @@
 <?php
+if ( ! defined( 'ABSPATH' ) ) exit;
 /**
  * Summary of registry
  *
@@ -49,7 +50,7 @@ function mo_oauth_server_init() {
 	$enforce_state = (bool) get_option( 'mo_oauth_server_enforce_state' ) ? get_option( 'mo_oauth_server_enforce_state' ) : 'off';
 	$enable_oidc   = (bool) get_option( 'mo_oauth_server_enable_oidc' ) ? get_option( 'mo_oauth_server_enable_oidc' ) : 'on';
 
-	global $moos_home_url_plus_rest_prefix;
+	global $mo_oauth_server_home_url_plus_rest_prefix;
 
 	// instantiate the oauth server.
 	$config = array(
@@ -58,7 +59,7 @@ function mo_oauth_server_init() {
 		'use_openid_connect'     => ( 'on' === $enable_oidc ),
 		'access_lifetime'        => get_option( 'mo_oauth_expiry_time' ) ? get_option( 'mo_oauth_expiry_time' ) : 3600,
 		'refresh_token_lifetime' => get_option( 'mo_oauth_refresh_expiry_time' ) ? get_option( 'mo_oauth_refresh_expiry_time' ) : 1209600,
-		'issuer'                 => $moos_home_url_plus_rest_prefix . '/moserver',
+		'issuer'                 => $mo_oauth_server_home_url_plus_rest_prefix . '/moserver',
 	);
 	$server = new OAuth2Server( $storage, $config, $grant_types );
 	return $server;

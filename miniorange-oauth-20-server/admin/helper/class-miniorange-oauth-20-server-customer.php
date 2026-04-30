@@ -200,7 +200,6 @@ class Mo_Oauth_Server_Customer {
 		$from_email             = $email;
 		$subject                = 'Feedback: WordPress OAuth Server Plugin';
 		$site_url               = site_url();
-		global $user;
 		$user = wp_get_current_user();
 
 		$server_name = isset( $_SERVER['SERVER_NAME'] ) ? sanitize_text_field( wp_unslash( $_SERVER['SERVER_NAME'] ) ) : 'Not able to fetch server name from $_SERVER[\'SERVER_NAME\']';
@@ -365,7 +364,6 @@ class Mo_Oauth_Server_Customer {
 		$from_email             = $email;
 		$site_url               = site_url();
 
-		global $user;
 		$user = wp_get_current_user();
 
 		$content = '<div >Hello, </a><br><br>Email :<a href="mailto:' . $from_email . '" target="_blank">' . $from_email . '</a><br><br>Requested Demo for     : ' . $demo_plan . '<br><br>Requirements (User usecase)           : ' . $message . '</div>';
@@ -524,7 +522,6 @@ class Mo_Oauth_Server_Customer {
 		$from_email             = $email;
 		$site_url               = site_url();
 
-		global $user;
 		$user    = wp_get_current_user();
 		$content = '<div >Hello, </a><br><br>Email :<a href="mailto:' . $from_email . '" target="_blank">' . $from_email . '</a><br><br> Customer local time (' . $call_time_zone . ') : ' . $call_time . ' on ' . $call_date . '<br><br>IST format    : ' . $ist_time . ' on ' . $ist_date . '<br><br>Requirements (User usecase)           : ' . $query . '</div>';
 

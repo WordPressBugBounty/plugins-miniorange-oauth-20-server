@@ -1,4 +1,5 @@
 <?php
+if ( ! defined( 'ABSPATH' ) ) exit;
 /**
  * Summary of authorize-dialog
  *
@@ -57,6 +58,7 @@ function mo_oauth_server_emit_css() {
  */
 function mo_oauth_server_emit_html( $client_credentials, $scope_message ) {
 	mo_oauth_server_emit_css();
+	wp_enqueue_style( 'mo-oauth-server-bulma', esc_url( MINIORANGE_OAUTH_20_SERVER_PLUGIN_DIR_URL ) . 'admin/css/bulma.min.css', array(), MINIORANGE_OAUTH_20_SERVER_VERSION );
 
 	// Load constants-based client configurations.
 	require_once MINIORANGE_OAUTH_20_SERVER_PLUGIN_DIR_PATH . 'admin/helper/constants/class-miniorange-oauth-20-server-oauth-constants.php';
@@ -72,7 +74,7 @@ function mo_oauth_server_emit_html( $client_credentials, $scope_message ) {
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>miniOrange OAuth Authorization Screen</title>
-	<link rel="stylesheet" href="<?php echo esc_url( MINIORANGE_OAUTH_20_SERVER_PLUGIN_DIR_URL ) . 'admin/css/bulma.min.css'; ?>">
+	<?php wp_print_styles( 'mo-oauth-server-bulma' ); ?>
 </head>
 
 <body>

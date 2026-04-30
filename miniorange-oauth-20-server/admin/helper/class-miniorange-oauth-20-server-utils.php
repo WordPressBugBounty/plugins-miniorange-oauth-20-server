@@ -1,4 +1,5 @@
 <?php
+if ( ! defined( 'ABSPATH' ) ) exit;
 /**
  * Class Miniorange_Oauth_20_Server_Utils
  *

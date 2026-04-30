@@ -4,7 +4,7 @@ Tags: WordPress Login, OAuth Provider, OAuth Server, OAuth2, OpenID
 Requires at least: 4.8
 Tested up to: 6.9
 Requires PHP: 5.6
-Stable tag: 6.1.3
+Stable tag: 6.1.4
 License: Expat
 License URI: https://plugins.miniorange.com/mit-license
 
@@ -79,12 +79,12 @@ Postman collection JSON is a file that can be used for testing the configuration
 * <a href="https://plugins.miniorange.com/drupal-wordpress-sso-integration-with-oauth-client-drupal-wordpress-login" target="_blank">Drupal</a>
 * Piano Analytics
 * Zerotier
- 
+
 = WORDPRESS OAUTH / OPENID CONNECT SERVER USE CASES =
 * If you want to use your WordPress site as an Identity Server / OAuth Server / OAuth Provider and utilize Login with WordPress to access your client site/application with WordPress user's login credentials, then you can use this plugin. You can also decide what kind of user data/attributes you want to send while Single Sign-On into your client site/application, including Moodle WordPress SSO and Nextcloud SSO functionalities.
 * If you want to login to your Mobile app / Single Page web app (SPA) using your WordPress credentials, then you can use the Authorization code with PKCE flow grant type to achieve your use case.
 * Single set of credentials will be used to login to multiple WordPress websites.
-* You can access the NGINX resources using NGINX Authentication. Once you login into your client application using WP OAuth Server credentials, you will get JWT. Your client application can further use it for NGINX Authentication. 
+* You can access the NGINX resources using NGINX Authentication. Once you login into your client application using WP OAuth Server credentials, you will get JWT. Your client application can further use it for NGINX Authentication.
 * Membership sync or role mapping is used to sync the memberships or roles assigned to your users from OAuth Server to OAuth/OpenID Client.
 * Custom Attribute Mapping is helpful if you want to send additional attributes (beyond the default ones) from your WordPress <em>usermeta</em> table to your OAuth/OpenID client using Login with WordPress.
 
@@ -174,6 +174,10 @@ Yes, you can enable/disable consent screen using the <a href="https://plugins.mi
 
 == Changelog ==
 
+= 6.1.4 =
+* Discovery endpoint enhancements.
+* WordPress PCP fixes.
+
 = 6.1.3 =
 * WordPress 6.9 compatibility.
 * Security fixes and code optimization.
@@ -219,12 +223,12 @@ Yes, you can enable/disable consent screen using the <a href="https://plugins.mi
 = 6.0.3 =
 * Added compatibility with WP 6.4
 * Phone number optional in support form.
-* Fixed some JS errors. 
+* Fixed some JS errors.
 
 = 6.0.2 =
 * Added compatibility with WP 6.3
 * Improved feedback form.
-* Removed unnecessary console logs. 
+* Removed unnecessary console logs.
 
 = 6.0.1 =
 * Bug fix - Custom OAuth Client logo image link fixed.
@@ -235,11 +239,11 @@ Yes, you can enable/disable consent screen using the <a href="https://plugins.mi
 * Backend simplification for improved performance and reliability
 * Bug fixes and performance enhancements
 
-= 5.1.1 = 
+= 5.1.1 =
 * Added compatibility with WP 6.2
 * Fixed the deactivation feedback form issue
 
-= 5.1.0 = 
+= 5.1.0 =
 * Added Custom Login URL feature
 * Fixes for empty scope
 * Set RSA algorithm as default
@@ -281,18 +285,18 @@ Yes, you can enable/disable consent screen using the <a href="https://plugins.mi
 * Vulnerability fixes
 * Code improvements
 
-= 3.0.4 = 
+= 3.0.4 =
 * Token Post Response header already sent warning fix
 
-= 3.0.3 = 
+= 3.0.3 =
 * Database Query Optimization
 
-= 3.0.2 = 
+= 3.0.2 =
 * CORS issue fix
 * Added trial option of the premium
 * Licensing page changes
 
-= 3.0.1 = 
+= 3.0.1 =
 * Added compatibility with WP 5.9
 * Improved performance of website by setting autoload to false
 
@@ -448,6 +452,10 @@ Yes, you can enable/disable consent screen using the <a href="https://plugins.mi
 
 == Upgrade Notice ==
 
+= 6.1.4 =
+* Discovery endpoint enhancements.
+* WordPress PCP fixes.
+
 = 6.1.3 =
 * WordPress 6.9 compatibility.
 * Security fixes and code optimization.
@@ -498,7 +506,7 @@ Yes, you can enable/disable consent screen using the <a href="https://plugins.mi
 = 6.0.2 =
 * Added compatibility with WP 6.3
 * Improved feedback form.
-* Removed unnecessary console logs. 
+* Removed unnecessary console logs.
 
 = 6.0.1 =
 * Bug fix - Custom OAuth Client logo image link fixed.

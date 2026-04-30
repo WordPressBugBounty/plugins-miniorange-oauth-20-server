@@ -34,11 +34,11 @@ class Miniorange_Oauth_20_Server_Postman_Collection_Download {
 
 		// store home url and rest prefix in a variable
 		// rest prefix eg. wp-json.
-		global $moos_home_url_plus_rest_prefix;
+		global $mo_oauth_server_home_url_plus_rest_prefix;
 
-		$access_token_url = $moos_home_url_plus_rest_prefix . '/moserver/token';
-		$auth_url         = $moos_home_url_plus_rest_prefix . '/moserver/authorize';
-		$resource_url     = $moos_home_url_plus_rest_prefix . '/moserver/resource';
+		$access_token_url = $mo_oauth_server_home_url_plus_rest_prefix . '/moserver/token';
+		$auth_url         = $mo_oauth_server_home_url_plus_rest_prefix . '/moserver/authorize';
+		$resource_url     = $mo_oauth_server_home_url_plus_rest_prefix . '/moserver/resource';
 		$protocol         = isset( $_SERVER['HTTPS'] ) && 'on' === $_SERVER['HTTPS'] ? 'https' : 'http';
 		if ( isset( $_SERVER['REQUEST_URI'] ) ) {
 			$path_url = explode( '/', esc_url_raw( wp_unslash( $_SERVER['REQUEST_URI'] ) ) );

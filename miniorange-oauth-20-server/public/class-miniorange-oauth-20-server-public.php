@@ -103,12 +103,12 @@ class Miniorange_Oauth_20_Server_Public {
 		$mo_utils                  = new Miniorange_Oauth_20_Server_Utils();
 		$home_url_plus_rest_prefix = $mo_utils->get_home_url_with_permalink_structure();
 
-		global $moos_home_url_plus_rest_prefix;
-		$moos_home_url_plus_rest_prefix = $home_url_plus_rest_prefix;
+		global $mo_oauth_server_home_url_plus_rest_prefix;
+		$mo_oauth_server_home_url_plus_rest_prefix = $home_url_plus_rest_prefix;
 
 		$protocol = isset( $_SERVER['HTTPS'] ) && 'on' === $_SERVER['HTTPS'] ? 'https://' : 'http://';
 
-		$authorize_url = str_replace( ':/', '://', trim( preg_replace( '/\/+/', '/', $moos_home_url_plus_rest_prefix . '/moserver/authorize' ), '/' ) );
+		$authorize_url = str_replace( ':/', '://', trim( preg_replace( '/\/+/', '/', $mo_oauth_server_home_url_plus_rest_prefix . '/moserver/authorize' ), '/' ) );
 
 		if ( isset( $_SERVER['REQUEST_URI'] ) && isset( $_SERVER['HTTP_HOST'] ) ) {
 			$request_path = wp_parse_url( esc_url_raw( wp_unslash( $_SERVER['REQUEST_URI'] ) ) );
@@ -250,12 +250,12 @@ class Miniorange_Oauth_20_Server_Public {
 		$well_known_routes = array(
 			'openid-configuration' => array(
 				'methods'             => 'GET',
-				'callback'            => '_mo_discovery',
+				'callback'            => 'mo_oauth_server_discovery',
 				'permission_callback' => '__return_true',
 			),
 			'keys'                 => array(
 				'methods'             => 'GET',
-				'callback'            => '_mo_jwt_keys',
+				'callback'            => 'mo_oauth_server_jwt_keys',
 				'permission_callback' => '__return_true',
 			),
 		);
@@ -296,7 +296,7 @@ class Miniorange_Oauth_20_Server_Public {
 		$enforce_state = (bool) get_option( 'mo_oauth_server_enforce_state' ) ? get_option( 'mo_oauth_server_enforce_state' ) : 'off';
 		$enable_oidc   = (bool) get_option( 'mo_oauth_server_enable_oidc' ) ? get_option( 'mo_oauth_server_enable_oidc' ) : 'on';
 
-		global $moos_home_url_plus_rest_prefix;
+		global $mo_oauth_server_home_url_plus_rest_prefix;
 
 		// instantiate the oauth server.
 		$config = array(
@@ -305,7 +305,7 @@ class Miniorange_Oauth_20_Server_Public {
 			'use_openid_connect'     => ( 'on' === $enable_oidc ),
 			'access_lifetime'        => get_option( 'mo_oauth_expiry_time' ) ? get_option( 'mo_oauth_expiry_time' ) : 3600,
 			'refresh_token_lifetime' => get_option( 'mo_oauth_refresh_expiry_time' ) ? get_option( 'mo_oauth_refresh_expiry_time' ) : 1209600,
-			'issuer'                 => $moos_home_url_plus_rest_prefix . '/moserver',
+			'issuer'                 => $mo_oauth_server_home_url_plus_rest_prefix . '/moserver',
 		);
 		$server = new OAuth2Server( $storage, $config, $grant_types );
 		return $server;

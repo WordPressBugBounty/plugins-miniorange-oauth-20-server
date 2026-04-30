@@ -1,4 +1,5 @@
 <?php
+if ( ! defined( 'ABSPATH' ) ) exit;
 /**
  * Summary of jwt-keys
  *
@@ -19,7 +20,7 @@ require 'class-pem-converter.php';
  * @param mixed $data client data.
  * @return void
  */
-function _mo_jwt_keys( $data ) {
+function mo_oauth_server_jwt_keys( $data ) {
 	mo_oauth_server_init();
 
 	$client_id = isset( $data['client_id'] ) ? $data['client_id'] : false;
