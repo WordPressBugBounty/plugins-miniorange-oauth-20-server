@@ -31,6 +31,21 @@ class Miniorange_Oauth_20_Server_Utils {
 	}
 
 	/**
+	 * Returns a sanitized value from POST for the given key.
+	 *
+	 * @param string $key POST parameter name.
+	 * @return string|null Sanitized string, or null if the key is not present.
+	 */
+	public function mo_oauth_get_sanitized_post_value( $key ) {
+		$value = filter_input( INPUT_POST, $key );
+		if ( null === $value || false === $value ) {
+			return null;
+		}
+
+		return sanitize_text_field( wp_unslash( (string) $value ) );
+	}
+
+	/**
 	 * Summary of mo_oauth_check_empty_or_null
 	 *
 	 * Checks if the input is empty or null.

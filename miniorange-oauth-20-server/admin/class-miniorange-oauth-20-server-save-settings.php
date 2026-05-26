@@ -35,6 +35,7 @@ class Miniorange_Oauth_20_Server_Save_Settings {
 		require_once MINIORANGE_OAUTH_20_SERVER_PLUGIN_DIR_PATH . 'admin/helper/class-miniorange-oauth-20-server-log-delete.php';
 		require_once MINIORANGE_OAUTH_20_SERVER_PLUGIN_DIR_PATH . 'admin/helper/class-miniorange-oauth-20-server-log-download.php';
 		require_once MINIORANGE_OAUTH_20_SERVER_PLUGIN_DIR_PATH . 'admin/helper/constants/class-miniorange-oauth-20-server-oauth-constants.php';
+		require_once MINIORANGE_OAUTH_20_SERVER_PLUGIN_DIR_PATH . 'admin/handlers/class-miniorange-oauth-20-server-handle-custom-login-url-ability.php';
 
 		$this->utils = new Miniorange_Oauth_20_Server_Utils();
 	}
@@ -44,7 +45,7 @@ class Miniorange_Oauth_20_Server_Save_Settings {
 	 */
 	public function miniorange_oauth_save_settings() {
 
-		if ( ! current_user_can( 'administrator' ) ) {
+		if ( ! current_user_can( 'manage_options' ) ) {
 			return;
 		}
 
@@ -55,7 +56,7 @@ class Miniorange_Oauth_20_Server_Save_Settings {
 
 			// todo error handling if fake client is inserted.
 			wp_safe_redirect( admin_url( '/admin.php?page=mo_oauth_server_settings&tab=config' ), 301 );
-
+			exit;
 		}
 
 		if ( isset( $_POST['mo_oauth_server_add_new_client_form_nonce'] ) ) {
@@ -156,21 +157,13 @@ class Miniorange_Oauth_20_Server_Save_Settings {
 				$custom_url = sanitize_text_field( wp_unslash( $_POST['mo_oauth_server_custom_login_url'] ) );
 			}
 
-			if ( ! empty( $custom_url ) ) {
-				if ( filter_var( $custom_url, FILTER_VALIDATE_URL ) ) {
-					$custom_url = sanitize_url( $custom_url );
-					update_option( 'mo_oauth_server_custom_login_url', $custom_url, false );
-					update_option( 'message', 'Custom Login URL updated successfully.', false );
-					$this->utils->mo_oauth_show_success_message();
-				} else {
-					update_option( 'message', 'Please enter a valid URL for the Custom Login URL.', false );
-					$this->utils->mo_oauth_show_error_message();
-					return;
-				}
-			} else {
-				update_option( 'mo_oauth_server_custom_login_url', '', false );
-				update_option( 'message', 'Custom Login URL updated successfully.', false );
+			$result = Miniorange_Oauth_20_Server_Handle_Custom_Login_Url_Ability::handle_custom_login_url_ability( $custom_url );
+			update_option( 'message', $result['message'], false );
+			if ( ! empty( $result['success'] ) ) {
 				$this->utils->mo_oauth_show_success_message();
+			} else {
+				$this->utils->mo_oauth_show_error_message();
+				return;
 			}
 		}
 
@@ -195,6 +188,55 @@ class Miniorange_Oauth_20_Server_Save_Settings {
 			update_option( 'mo_oauth_server_enforce_state', $value, false );
 			$message = ( $value === 'on' ) ? 'State Parameter enabled successfully.' : 'State Parameter disabled successfully.';
 			update_option( 'message', $message, false );
+			$this->utils->mo_oauth_show_success_message();
+		}
+
+		// Abilities API tab: persists option mo_oauth_server_abilities_api (on|off) and refreshes registrations for this request.
+		if ( null !== $this->utils->mo_oauth_get_sanitized_post_value( 'mo_oauth_server_abilities_api_form_nonce' ) ) {
+			require_once MINIORANGE_OAUTH_20_SERVER_PLUGIN_DIR_PATH . 'admin/helper/class-miniorange-oauth-20-server-abilities-api-settings.php';
+			Miniorange_Oauth_20_Server_Abilities_Api_Settings::save_if_posted( $this->utils );
+		}
+
+		// MCP Enable / Disable toggle.
+		if ( isset( $_POST['mo_oauth_server_mcp_enable_form_nonce'] ) ) {
+			if ( ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['mo_oauth_server_mcp_enable_form_nonce'] ) ), 'mo_oauth_server_mcp_enable_form' ) ) {
+				wp_die( 'You are not allowed to perform this action' );
+			}
+
+			$value   = isset( $_POST['mo_oauth_server_mcp_enabled'] ) ? 'on' : 'off';
+			update_option( 'mo_oauth_server_mcp_enabled', $value, false );
+			$message = ( 'on' === $value ) ? 'MCP endpoint enabled successfully.' : 'MCP endpoint disabled successfully.';
+			update_option( 'message', $message, false );
+			$this->utils->mo_oauth_show_success_message();
+		}
+
+		// MCP Authorization Method.
+		if ( isset( $_POST['mo_oauth_server_mcp_auth_form_nonce'] ) ) {
+			if ( ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['mo_oauth_server_mcp_auth_form_nonce'] ) ), 'mo_oauth_server_mcp_auth_form' ) ) {
+				wp_die( 'You are not allowed to perform this action' );
+			}
+
+			$allowed_methods = array( 'application_password', 'oauth', 'both' );
+			$raw_method      = isset( $_POST['mo_oauth_server_mcp_auth_method'] )
+				? sanitize_text_field( wp_unslash( $_POST['mo_oauth_server_mcp_auth_method'] ) )
+				: 'both';
+			$auth_method     = in_array( $raw_method, $allowed_methods, true ) ? $raw_method : 'both';
+			update_option( 'mo_oauth_server_mcp_auth_method', $auth_method, false );
+			update_option( 'message', 'MCP authorization method saved successfully.', false );
+			$this->utils->mo_oauth_show_success_message();
+		}
+
+		// MCP Allowed Abilities.
+		if ( isset( $_POST['mo_oauth_server_mcp_abilities_form_nonce'] ) ) {
+			if ( ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['mo_oauth_server_mcp_abilities_form_nonce'] ) ), 'mo_oauth_server_mcp_abilities_form' ) ) {
+				wp_die( 'You are not allowed to perform this action' );
+			}
+
+			$raw_abilities = isset( $_POST['mo_oauth_server_mcp_allowed_abilities'] ) && is_array( $_POST['mo_oauth_server_mcp_allowed_abilities'] )
+				? array_map( 'sanitize_text_field', wp_unslash( $_POST['mo_oauth_server_mcp_allowed_abilities'] ) )
+				: array();
+			update_option( 'mo_oauth_server_mcp_allowed_abilities', $raw_abilities, false );
+			update_option( 'message', 'MCP allowed abilities saved successfully.', false );
 			$this->utils->mo_oauth_show_success_message();
 		}
 
@@ -369,48 +411,13 @@ class Miniorange_Oauth_20_Server_Save_Settings {
 			}
 
 			if ( isset( $_POST['mo_oauth_server_log_button_toggle'] ) && 'on' === sanitize_text_field( wp_unslash( $_POST['mo_oauth_server_log_button_toggle'] ) ) ) {
-				// Check if upload directory has write access before enabling debug logs.
-				$upload_dir = wp_upload_dir();
-				$log_dir    = trailingslashit( $upload_dir['basedir'] ) . Miniorange_Oauth_20_Server_Oauth_Constants::ERROR_LOGS_DIR;
-
-				// Ensure directory exists first.
-				if ( ! file_exists( $log_dir ) ) {
-					$created = wp_mkdir_p( $log_dir );
-					if ( ! $created ) {
-						update_option( 'mo_oauth_server_is_debug_enabled', 0, false );
-						update_option( 'message', 'Debug logs have been automatically disabled. The plugin does not have the necessary permissions to create a folder in the uploads directory to store error logs.', false );
-						$this->utils->mo_oauth_show_error_message();
-						return;
-					}
-				}
-
-				require_once MINIORANGE_OAUTH_20_SERVER_PLUGIN_DIR_PATH . 'admin/helper/class-mo-oauth-server-file-protection.php';
-				MO_OAuth_Server_File_Protection::mo_oauth_server_create_protection_files( $log_dir );
-
-				global $wp_filesystem;
-				if ( empty( $wp_filesystem ) ) {
-					require_once ABSPATH . '/wp-admin/includes/file.php';
-					WP_Filesystem();
-				}
-
-				// Check if directory is writable using WP_Filesystem.
-				if ( ! $wp_filesystem->is_writable( $log_dir ) ) {
-					update_option( 'mo_oauth_server_is_debug_enabled', 0, false );
-					update_option( 'message', 'Debug logs have been automatically disabled. The plugin does not have write permission for the error-logs directory.', false );
+				require_once MINIORANGE_OAUTH_20_SERVER_PLUGIN_DIR_PATH . 'admin/helper/class-miniorange-oauth-20-server-enable-debug-logs.php';
+				$debug_enable_result = Miniorange_Oauth_20_Server_Enable_Debug_Logs::mo_oauth_server_try_enable_debug_logs();
+				if ( ! $debug_enable_result['success'] ) {
+					update_option( 'message', $debug_enable_result['message'], false );
 					$this->utils->mo_oauth_show_error_message();
 					return;
 				}
-
-				// Check if log file exists and is not writable using WP_Filesystem.
-				$log_file = $log_dir . 'wp_oauth_server_errors.log';
-				if ( $wp_filesystem->exists( $log_file ) && ! $wp_filesystem->is_writable( $log_file ) ) {
-					update_option( 'mo_oauth_server_is_debug_enabled', 0, false );
-					update_option( 'message', 'Debug logs have been automatically disabled. The plugin does not have write permission for the error log file.', false );
-					$this->utils->mo_oauth_show_error_message();
-					return;
-				}
-
-				update_option( 'mo_oauth_server_is_debug_enabled', 1, false );
 			} else {
 				update_option( 'mo_oauth_server_is_debug_enabled', 0, false );
 				require_once MINIORANGE_OAUTH_20_SERVER_PLUGIN_DIR_PATH . 'admin/helper/class-miniorange-oauth-20-server-log-delete.php';

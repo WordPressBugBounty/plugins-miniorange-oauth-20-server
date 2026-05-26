@@ -32,6 +32,12 @@ $current_tab = isset( $_GET['tab'] ) ? sanitize_text_field( wp_unslash( $_GET['t
 				<li><a class="nav-link box my-3 p-4 has-text-weight-bold <?php echo ('advance_settings' === $current_tab) ? 'miniorange-oauth-20-server-nav-active' : ''; ?>" href="admin.php?page=mo_oauth_server_settings&tab=advance_settings" data-content="settings">
 						<i class="fa-solid fa-gear mr-2"></i>
 						Advanced Settings</a></li>
+				<li><a class="nav-link box my-3 p-4 has-text-weight-bold <?php echo ('mcp_settings' === $current_tab) ? 'miniorange-oauth-20-server-nav-active' : ''; ?>" href="admin.php?page=mo_oauth_server_settings&tab=mcp_settings" data-content="mcp-settings">
+						<i class="fa-solid fa-robot mr-2"></i>
+						MCP Settings</a></li>
+				<li><a class="nav-link box my-3 p-4 has-text-weight-bold <?php echo ( 'abilities_api' === $current_tab ) ? 'miniorange-oauth-20-server-nav-active' : ''; ?>" href="admin.php?page=mo_oauth_server_settings&tab=abilities_api" data-content="abilities-api">
+						<i class="fa-solid fa-bolt mr-2"></i>
+						Abilities API</a></li>
 			</ul>
 			<h2 class="is-size-5 has-text-weight-semibold miniorange-oauth-20-server-card-title">Premium</h2>
 			<ul class="menu-list">

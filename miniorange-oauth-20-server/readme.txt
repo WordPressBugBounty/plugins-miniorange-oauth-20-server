@@ -2,9 +2,9 @@
 Contributors: cyberlord92, nimeshatxecurify
 Tags: WordPress Login, OAuth Provider, OAuth Server, OAuth2, OpenID
 Requires at least: 4.8
-Tested up to: 6.9
+Tested up to: 7.0
 Requires PHP: 5.6
-Stable tag: 6.1.4
+Stable tag: 6.1.5
 License: Expat
 License URI: https://plugins.miniorange.com/mit-license
 
@@ -173,6 +173,11 @@ Yes, you can enable/disable consent screen using the <a href="https://plugins.mi
 
 
 == Changelog ==
+
+= 6.1.5 =
+* Introducing OAuth protected MCP endpoint.
+* Implemented Abilities API for OAuth Server plugin.
+* WordPress 7.0 compatibility.
 
 = 6.1.4 =
 * Discovery endpoint enhancements.
@@ -451,6 +456,11 @@ Yes, you can enable/disable consent screen using the <a href="https://plugins.mi
 * Initial Release
 
 == Upgrade Notice ==
+
+= 6.1.5 =
+* Introducing OAuth protected MCP endpoint.
+* Implemented Abilities API for OAuth Server plugin.
+* WordPress 7.0 compatibility.
 
 = 6.1.4 =
 * Discovery endpoint enhancements.

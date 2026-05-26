@@ -64,7 +64,7 @@ class Mo_Oauth_Server_Db {
 	 * @param string $jwt_signing_algorithm the JWT signing algorithm.
 	 * @param string $private_key the private key for the JWT signing algorithm.
 	 * @param string $public_key the public key for the JWT signing algorithm.
-	 * @return void
+	 * @return bool True when both inserts succeed.
 	 */
 	public function add_client( $client_name, $client_secret, $redirect_url, $active_oauth_server_id, $jwt_signing_algorithm, $private_key, $public_key ) {
 		global $wpdb;
@@ -72,16 +72,22 @@ class Mo_Oauth_Server_Db {
 		$mo_utils  = new Miniorange_Oauth_20_Server_Utils();
 		$client_id = $mo_utils->moos_generate_random_string( 32 );
 		//phpcs:ignore WordPress.DB.DirectDatabaseQuery.SchemaChange,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching	
-		$wpdb->query( $wpdb->prepare( 'INSERT INTO ' . $wpdb->base_prefix . 'moos_oauth_clients (client_name, client_id, client_secret, redirect_uri,active_oauth_server_id ) VALUES (%s, %s, %s, %s, %d )', $client_name, $client_id, $client_secret, $redirect_url, $active_oauth_server_id ) );
+		$insert_client = $wpdb->query( $wpdb->prepare( 'INSERT INTO ' . $wpdb->base_prefix . 'moos_oauth_clients (client_name, client_id, client_secret, redirect_uri,active_oauth_server_id ) VALUES (%s, %s, %s, %s, %d )', $client_name, $client_id, $client_secret, $redirect_url, $active_oauth_server_id ) );
+
+		if ( false === $insert_client ) {
+			return false;
+		}
 
 		if ( 'RS256' === $jwt_signing_algorithm ) {
 			//phpcs:ignore WordPress.DB.DirectDatabaseQuery.SchemaChange,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
-			$wpdb->query( $wpdb->prepare( 'INSERT INTO ' . $wpdb->base_prefix . "moos_oauth_public_keys (client_id, public_key, private_key, encryption_algorithm) VALUES (%s, %s, %s, 'RS256')", $client_id, $public_key, $private_key ) );
+			$insert_keys = $wpdb->query( $wpdb->prepare( 'INSERT INTO ' . $wpdb->base_prefix . "moos_oauth_public_keys (client_id, public_key, private_key, encryption_algorithm) VALUES (%s, %s, %s, 'RS256')", $client_id, $public_key, $private_key ) );
 		} else {
 			// Storing client secret as private key in public keys table for HS algorithm.
 			//phpcs:ignore WordPress.DB.DirectDatabaseQuery.SchemaChange,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
-			$wpdb->query( $wpdb->prepare( 'INSERT INTO ' . $wpdb->base_prefix . "moos_oauth_public_keys (client_id, public_key, private_key, encryption_algorithm) VALUES ( %s, '', %s, 'HS256')", $client_id, $client_secret ) );
+			$insert_keys = $wpdb->query( $wpdb->prepare( 'INSERT INTO ' . $wpdb->base_prefix . "moos_oauth_public_keys (client_id, public_key, private_key, encryption_algorithm) VALUES ( %s, '', %s, 'HS256')", $client_id, $client_secret ) );
 		}
+
+		return false !== $insert_keys;
 	}
 
 	/**
@@ -120,7 +126,7 @@ class Mo_Oauth_Server_Db {
 	 *
 	 * @param string $client_name the name of the client.
 	 * @param string $client_id the client ID.
-	 * @return void
+	 * @return int|false Number of client rows deleted (typically 0 or 1), or false if the clients DELETE query failed.
 	 */
 	public function delete_client( $client_name, $client_id ) {
 		global $wpdb;
@@ -128,9 +134,18 @@ class Mo_Oauth_Server_Db {
 		 //phpcs:ignore WordPress.DB.DirectDatabaseQuery.SchemaChange,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
 		$wpdb->query( $wpdb->prepare( 'DELETE FROM ' . $wpdb->base_prefix . 'moos_oauth_public_keys WHERE client_id = %s', array( $client_id ) ) );
 		 //phpcs:ignore WordPress.DB.DirectDatabaseQuery.SchemaChange,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
-		$wpdb->query( $wpdb->prepare( 'DELETE FROM ' . $wpdb->base_prefix . 'moos_oauth_clients WHERE client_name = %s and active_oauth_server_id= %d', $client_name, get_current_blog_id() ) );
+		$del_clients = $wpdb->query( $wpdb->prepare( 'DELETE FROM ' . $wpdb->base_prefix . 'moos_oauth_clients WHERE client_name = %s and active_oauth_server_id= %d', $client_name, get_current_blog_id() ) );
+
+		if ( false === $del_clients ) {
+			return false;
+		}
+
+		$rows_deleted = (int) $wpdb->rows_affected;
+
 		delete_option( 'mo_oauth_server_client' );
 		delete_option( 'mo_oauth_server_enable_jwt_support_for_' . $client_name );
 		delete_option( 'mo_oauth_server_jwt_signing_algo_for_' . $client_name );
+
+		return $rows_deleted;
 	}
 }

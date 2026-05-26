@@ -31,17 +31,26 @@ class Miniorange_Oauth_20_Server_Contact_Us {
 	}
 
 	/**
-	 * This function handles the contact us form.
+	 * This function handles the contact us form and Abilities API support submissions.
 	 *
-	 * @param string $email Email.
-	 * @param string $phone Phone.
-	 * @param string $query Query.
-	 * @param string $no_of_users Number of users.
+	 * @param string  $email Email.
+	 * @param string  $phone Phone.
+	 * @param string  $query Query.
+	 * @param string  $no_of_users Number of users (or plan label when used from dashboard contact form).
+	 * @param bool   $from_ability When true, returns array with success and message instead of admin notices.
+	 * @return void|array Void for admin form; array with success and message keys when $from_ability is true.
 	 */
-	public function handle_contact_us( $email, $phone, $query, $no_of_users ) {
+	public function handle_contact_us( $email, $phone, $query, $no_of_users, $from_ability = false ) {
 
 		if ( $this->utils->mo_oauth_server_is_curl_installed() === 0 ) {
-			return $this->utils->mo_oauth_show_curl_error();
+			if ( $from_ability ) {
+				return array(
+					'success' => false,
+					'message' => 'The PHP cURL extension is not installed or is disabled. Enable cURL to submit a support request.',
+				);
+			}
+			$this->utils->mo_oauth_show_curl_error();
+			return;
 		}
 
 		if ( ! empty( $no_of_users ) ) {
@@ -50,17 +59,38 @@ class Miniorange_Oauth_20_Server_Contact_Us {
 
 		$customer = new Mo_Oauth_Server_Customer();
 		if ( $this->utils->mo_oauth_check_empty_or_null( $email ) || $this->utils->mo_oauth_check_empty_or_null( $query ) ) {
+			if ( $from_ability ) {
+				return array(
+					'success' => false,
+					'message' => 'Please provide a valid email and support request text to submit your query.',
+				);
+			}
 			update_option( 'message', 'Please fill up Email and Query fields to submit your query.', false );
 			$this->utils->mo_oauth_show_error_message();
-		} else {
-			$submited = $customer->submit_contact_us( $email, $phone, $query );
-			if ( false === $submited ) {
-				update_option( 'message', 'Your query could not be submitted. Please try again.', false );
-				$this->utils->mo_oauth_show_error_message();
-			} else {
-				update_option( 'message', 'Thanks for getting in touch! We shall get back to you shortly.', false );
-				$this->utils->mo_oauth_show_success_message();
-			}
+			return;
 		}
+
+		$submited = $customer->submit_contact_us( $email, $phone, $query );
+		if ( false === $submited ) {
+			if ( $from_ability ) {
+				return array(
+					'success' => false,
+					'message' => 'Your query could not be submitted. Please try again.',
+				);
+			}
+			update_option( 'message', 'Your query could not be submitted. Please try again.', false );
+			$this->utils->mo_oauth_show_error_message();
+			return;
+		}
+
+		if ( $from_ability ) {
+			return array(
+				'success' => true,
+				'message' => 'Thanks for getting in touch! We shall get back to you shortly.',
+			);
+		}
+
+		update_option( 'message', 'Thanks for getting in touch! We shall get back to you shortly.', false );
+		$this->utils->mo_oauth_show_success_message();
 	}
 }

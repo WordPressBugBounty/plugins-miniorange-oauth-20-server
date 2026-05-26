@@ -24,6 +24,12 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 		</div>
 	</div>
 
+	<div class="mb-3">
+		<a href="<?php echo esc_url( admin_url( 'admin.php?page=mo_oauth_server_settings&tab=config&reset_client=1' ) ); ?>" class="button is-small is-light">
+			<i class="fa-solid fa-arrow-left mr-1"></i> Change Application
+		</a>
+	</div>
+
 	<?php if ( $client_settings ) : ?>
 		<div class="columns mx-1 my-5">
 			<figure class="image is-32x32 is-flex is-align-items-center is-justify-content-center">
@@ -56,7 +62,8 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 			</div>
 			<div class="column is-two-third">
 				<div class="control">
-					<input class="input is-normal" placeholder="Provided by your Client application" name="redirect_uri">
+					<input class="input is-normal" placeholder="Provided by your Client application" name="redirect_uri"
+					value="<?php echo isset( $client_settings['redirect_uri_prefill'] ) ? esc_attr( $client_settings['redirect_uri_prefill'] ) : ''; ?>">
 				</div>
 			</div>
 		</div>

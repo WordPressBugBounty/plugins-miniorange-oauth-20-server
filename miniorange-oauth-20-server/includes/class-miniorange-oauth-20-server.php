@@ -122,6 +122,16 @@ class Miniorange_Oauth_20_Server {
 		 */
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'public/class-miniorange-oauth-20-server-public.php';
 
+		/**
+		 * The class responsible for the MCP (Model Context Protocol) endpoint.
+		 */
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/mcp/class-miniorange-oauth-20-server-mcp.php';
+
+		/**
+		 * The class responsible for defining the Abilities API settings.
+		 */
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/helper/class-miniorange-oauth-20-server-abilities-api-settings.php';
+
 		$this->loader = new Miniorange_Oauth_20_Server_Loader();
 
 	}
@@ -184,6 +194,15 @@ class Miniorange_Oauth_20_Server {
 
 		$this->loader->add_filter( 'init', $plugin_public, 'mo_oauth_server_authorize' );
 		$this->loader->add_action( 'rest_api_init', $plugin_public, 'mo_oauth_server_register_endpoints' );
+		$this->loader->add_action( 'rest_api_init', 'Miniorange_Oauth_20_Server_MCP', 'register_routes' );
+
+
+		// Load and hook only when the toggle is on; save_if_posted loads the file when turning off in admin.
+		if ( 'on' === get_option( Miniorange_Oauth_20_Server_Abilities_Api_Settings::OPTION_NAME, 'off' ) ) {
+			require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/handlers/class-miniorange-oauth-20-server-register-abilities.php';
+			$this->loader->add_action( 'wp_abilities_api_categories_init', 'Miniorange_Oauth_20_Server_Register_Abilities', 'hook_wp_abilities_api_categories_init' );
+			$this->loader->add_action( 'wp_abilities_api_init', 'Miniorange_Oauth_20_Server_Register_Abilities', 'hook_wp_abilities_api_init' );
+		}
 	}
 
 	/**

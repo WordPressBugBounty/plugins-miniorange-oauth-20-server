@@ -68,7 +68,7 @@ class Miniorange_Oauth_20_Server_Admin {
 			wp_enqueue_style( 'miniorange-oauth-20-server-bulma-tooltip.css', plugin_dir_url( __FILE__ ) . 'css/bulma-tooltip.min.css', array(), $this->version, 'all' );
 			wp_enqueue_style( 'miniorange-oauth-20-server-intl-tel-input', plugin_dir_url( __FILE__ ) . 'css/intl-tel-input.css', array(), $this->version, 'all' );
 
-			wp_enqueue_style( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'css/miniorange-oauth-20-server-admin.css', array(), $this->version, 'all' );
+			wp_enqueue_style( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'css/miniorange-oauth-20-server-admin.css', array(), filemtime( plugin_dir_path( __FILE__ ) . 'css/miniorange-oauth-20-server-admin.css' ), 'all' );
 		}
 		wp_enqueue_style( 'mo_oauth_server_admin_security_notice', plugin_dir_url( __FILE__ ) . 'css/security_notice.min.css', array(), $this->version, $in_footer = false );
 	}
@@ -164,8 +164,14 @@ class Miniorange_Oauth_20_Server_Admin {
 			case 'integrations':
 				$this->mo_oauth_render_view_integrations_page();
 				break;
+			case 'abilities_api':
+				require_once MINIORANGE_OAUTH_20_SERVER_PLUGIN_DIR_PATH . 'admin/views/miniorange-oauth-20-server-settings-abilities-api-settings.php';
+				break;
 			case 'trials_available':
 				require_once MINIORANGE_OAUTH_20_SERVER_PLUGIN_DIR_PATH . 'admin/views/miniorange-oauth-20-server-settings-request-for-demo.php';
+				break;
+			case 'mcp_settings':
+				$this->mo_oauth_server_handle_mcp_settings_page();
 				break;
 			default:
 				require_once MINIORANGE_OAUTH_20_SERVER_PLUGIN_DIR_PATH . 'admin/views/miniorange-oauth-20-server-settings-contact-us.php';
@@ -257,6 +263,12 @@ class Miniorange_Oauth_20_Server_Admin {
 	 */
 	public function mo_oauth_server_handle_config_page() {
 		// get info about the chosen client and display accordingly.
+
+		// Allow the admin to return to the application-selection screen by clearing the stored choice.
+		if ( isset( $_GET['reset_client'] ) && '1' === $_GET['reset_client'] ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only UI reset, no state mutation beyond clearing a session-scoped display option.
+			delete_option( 'mo_oauth_server_client' );
+		}
+
 		// Load constants-based client configurations.
 		require_once MINIORANGE_OAUTH_20_SERVER_PLUGIN_DIR_PATH . 'admin/helper/constants/class-miniorange-oauth-20-server-oauth-constants.php';
 		$oauth_client_list_json_data = Mo_Oauth_Client_Configuration::get_all_client_configurations();
@@ -359,6 +371,22 @@ class Miniorange_Oauth_20_Server_Admin {
 			$debug_log_button = '';
 		}
 		require_once MINIORANGE_OAUTH_20_SERVER_PLUGIN_DIR_PATH . 'admin/views/miniorange-oauth-20-server-settings-troubleshooting.php';
+	}
+
+	/**
+	 * Function to handle the MCP settings page view.
+	 *
+	 * @return void
+	 */
+	public function mo_oauth_server_handle_mcp_settings_page() {
+		$mcp_enabled   = ( 'on' === get_option( 'mo_oauth_server_mcp_enabled', 'off' ) ) ? 'checked' : '';
+		$mcp_auth      = get_option( 'mo_oauth_server_mcp_auth_method', 'both' );
+		$mcp_abilities = get_option( 'mo_oauth_server_mcp_allowed_abilities', array() );
+		if ( ! is_array( $mcp_abilities ) ) {
+			$mcp_abilities = array();
+		}
+
+		require_once MINIORANGE_OAUTH_20_SERVER_PLUGIN_DIR_PATH . 'admin/views/miniorange-oauth-20-server-settings-mcp.php';
 	}
 
 	/**

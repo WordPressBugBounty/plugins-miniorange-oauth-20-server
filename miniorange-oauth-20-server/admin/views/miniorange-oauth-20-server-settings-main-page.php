@@ -66,6 +66,48 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 					</div>
 				</div>
 
+				<div class="column is-one-third" onclick="location.href='admin.php?page=mo_oauth_server_settings&tab=mcp_settings';">
+					<div class="card is-clickable is-hoverable miniorange-oauth-20-server-card">
+						<div class="card-content p-1 mt-1">
+							<div class="media">
+								<div class="media-left">
+									<i class="fa-solid fa-robot fa-2x"></i>
+								</div>
+								<div class="media-content">
+									<p class="content-title is-size-6 has-text-weight-bold">MCP Settings</p>
+								</div>
+							</div>
+							<div class="content">Enable your WordPress site as an MCP server for AI assistants like ChatGPT and Claude.</div>
+							<footer class="card-footer">
+								<p class="card-footer-item">
+									<a class="miniorange-oauth-20-server-orange-color is-size-6 has-text-weight-bold">Let's Go <i class="fa-solid fa-arrow-right"></i></a>
+								</p>
+							</footer>
+						</div>
+					</div>
+				</div>
+
+				<div class="column is-one-third" onclick="location.href='admin.php?page=mo_oauth_server_settings&tab=abilities_api';">
+					<div class="card is-clickable is-hoverable miniorange-oauth-20-server-card">
+						<div class="card-content p-1 mt-1">
+							<div class="media">
+								<div class="media-left">
+									<i class="fa-solid fa-bolt fa-2x"></i>
+								</div>
+								<div class="media-content">
+									<p class="content-title is-size-6 has-text-weight-bold">Abilities API</p>
+								</div>
+							</div>
+							<div class="content">Register OAuth Server actions as WordPress Abilities so AI clients can invoke them via MCP.</div>
+							<footer class="card-footer">
+								<p class="card-footer-item">
+									<a class="miniorange-oauth-20-server-orange-color is-size-6 has-text-weight-bold">Let's Go <i class="fa-solid fa-arrow-right"></i></a>
+								</p>
+							</footer>
+						</div>
+					</div>
+				</div>
+
 				<div class="column is-one-third" onclick="location.href='admin.php?page=mo_oauth_server_settings&tab=server_response';">
 					<div class="card is-clickable is-hoverable miniorange-oauth-20-server-card">
 						<div class="card-content p-1 mt-1">
@@ -280,5 +322,5 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 			}
 			?>
 		</div>
-		
+
 	</div>

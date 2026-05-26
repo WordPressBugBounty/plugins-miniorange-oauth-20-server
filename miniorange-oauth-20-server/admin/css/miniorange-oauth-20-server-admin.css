@@ -153,6 +153,9 @@ body {
 	background-color: var(--blue);
 	color: var(--white);
 	border-color: var(--blue);
+	display: inline-flex;
+	align-items: center;
+	gap: 0.3em;
 }
 
 .button.is-blue.is-outlined,
@@ -168,6 +171,32 @@ body {
 
 .is-grey {
 	color: var(--grey);
+}
+
+/* Abilities API tab — MCP client setup guide cards */
+.miniorange-oauth-20-server-mcp-guide-link {
+	display: block;
+	padding: 1rem;
+	border: 1px solid #ddd;
+	border-radius: 6px;
+	color: var(--grey);
+	text-decoration: none;
+	transition: border-color 0.2s ease, box-shadow 0.2s ease;
+	height: 100%;
+}
+
+.miniorange-oauth-20-server-mcp-guide-link:hover {
+	border-color: var(--blue);
+	box-shadow: 0 2px 8px rgb(55 72 117 / 12%);
+	color: var(--grey);
+}
+
+.miniorange-oauth-20-server-mcp-guide-link:hover .miniorange-oauth-20-server-mcp-guide-link-cta {
+	text-decoration: underline;
+}
+
+.miniorange-oauth-20-server-mcp-guide-link-cta {
+	color: var(--blue);
 }
 
 .media-left,
