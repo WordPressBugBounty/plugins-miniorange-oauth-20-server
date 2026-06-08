@@ -475,8 +475,15 @@ class Miniorange_Oauth_20_Server_Save_Settings {
 			$this->utils->mo_oauth_show_success_message();
 		}
 
-		if ( array_key_exists( 'mo_admin_security_dismiss', $_POST ) && isset( $_REQUEST['mo_oauth_server_security_warning_form_field'] ) && wp_verify_nonce( sanitize_text_field( wp_unslash( $_REQUEST['mo_oauth_server_security_warning_form_field'] ) ), 'mo_oauth_server_security_warning_form' ) ) {
-			update_option( 'mo_oauth_server_hide_security_warning_admin', 1 );
+		if ( isset( $_POST['mo_oauth_server_rotate_rsa_keys'] ) && isset( $_POST['mo_oauth_server_rotate_rsa_keys_nonce'] ) && wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['mo_oauth_server_rotate_rsa_keys_nonce'] ) ), 'mo_oauth_server_rotate_rsa_keys' ) ) {
+			require_once MINIORANGE_OAUTH_20_SERVER_PLUGIN_DIR_PATH . 'admin/helper/class-miniorange-oauth-20-server-key-manager.php';
+			if ( Mo_Oauth_Server_Key_Manager::rotate_rs256_clients() ) {
+				update_option( 'message', 'RSA keys rotated successfully. Update your connected application with the new public key from the JWKS endpoint.', false );
+				$this->utils->mo_oauth_show_success_message();
+			} else {
+				update_option( 'message', 'RSA key rotation failed: Something went wrong while generating the RSA key.', false );
+				$this->utils->mo_oauth_show_error_message();
+			}
 		}
 	}
 }

@@ -41,3 +41,8 @@ delete_option( 'message' );
 delete_option( 'mo_oauth_server_new_registration' );
 delete_option( 'mo_oauth_server_registration_status' );
 delete_option( 'mo_oauth_show_mo_server_message' );
+delete_option( 'mo_oauth_server_hide_security_warning_admin' );
+delete_option( 'mo_oauth_server_security_warning_remind_date' );
+delete_option( 'mo_oauth_server_is_security_warning_mail_sent' );
+delete_option( 'mo_oauth_server_jwks_uri_hit_count' );
+delete_option( 'mo_oauth_server_site_keys_generated' );

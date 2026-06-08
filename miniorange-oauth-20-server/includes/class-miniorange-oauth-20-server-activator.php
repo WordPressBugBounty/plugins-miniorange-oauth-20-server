@@ -38,6 +38,7 @@ class Miniorange_Oauth_20_Server_Activator {
 		$mo_oauth_server_db = new Mo_Oauth_Server_Db();
 		$mo_oauth_server_db->mo_plugin_activate();
 
+
 		// create a new cronjob to delete old debug logs.
 		if ( ! wp_next_scheduled( 'mo_oauth_server_debug_delete_cron_job' ) ) {
 			wp_schedule_event( time(), 'weekly', 'mo_oauth_server_debug_delete_cron_job' );

@@ -29,6 +29,19 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 					You can only add 1 client with free version. Upgrade to <a href="<?php echo esc_url( Miniorange_Oauth_20_Server_Oauth_Constants::PRICING_PLAN_URL )?>" target="_blank" class="is-link" >Premium</a> to add more.
 					</div>
 				</article>
+				<?php
+				require_once MINIORANGE_OAUTH_20_SERVER_PLUGIN_DIR_PATH . 'admin/helper/class-miniorange-oauth-20-server-key-manager.php';
+				$mo_client_sub = str_replace( ' ', '_', $client->client_name );
+				$mo_jwt_active = 'on' === get_option( 'mo_oauth_server_enable_jwt_support_for_' . $mo_client_sub );
+				$mo_jwt_algo   = get_option( 'mo_oauth_server_jwt_signing_algo_for_' . $mo_client_sub, 'RS256' );
+				if ( $mo_jwt_active && 'RS256' === $mo_jwt_algo && ! Mo_Oauth_Server_Key_Manager::site_keys_generated() ) :
+				?>
+				<article class="message is-warning">
+					<div class="message-body">
+					A security update is required for your JWT configuration. <a href="admin.php?page=mo_oauth_server_settings&tab=config" class="is-link">Click here to review.</a>
+					</div>
+				</article>
+				<?php endif; ?>
 
 				<div class="pt-4 px-3 mr-0">
 					<div class="columns is-flex is-align-items-center is-justify-content-left">

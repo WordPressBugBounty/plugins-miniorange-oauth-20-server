@@ -433,16 +433,6 @@ class Miniorange_Oauth_20_Server_Admin {
 	}
 
 	/**
-	 * Function to handle the security warning message.
-	 *
-	 * @return void
-	 */
-	public function mo_oauth_server_security_warning_message() {
-		require_once MINIORANGE_OAUTH_20_SERVER_PLUGIN_DIR_PATH . 'admin/views/miniorange-oauth-20-server-security-warning-message.php';
-		mo_oauth_server_security_warning_message_view();
-	}
-
-	/**
 	 * Adds the action links in plugin list.
 	 *
 	 * @return array

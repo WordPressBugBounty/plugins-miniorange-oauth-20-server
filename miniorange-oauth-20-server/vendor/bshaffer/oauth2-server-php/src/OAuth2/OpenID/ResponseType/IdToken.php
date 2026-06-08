@@ -14,7 +14,7 @@ class IdToken implements IdTokenInterface {
 	protected $config;
 	protected $encryptionUtil;
 
-	public function __construct( UserClaimsInterface $userClaimsStorage, PublicKeyInterface $publicKeyStorage, array $config = array(), EncryptionInterface $encryptionUtil = null ) {
+	public function __construct( UserClaimsInterface $userClaimsStorage, PublicKeyInterface $publicKeyStorage, array $config = array(), ?EncryptionInterface $encryptionUtil = null ) {
 		$this->userClaimsStorage = $userClaimsStorage;
 		$this->publicKeyStorage  = $publicKeyStorage;
 		if ( is_null( $encryptionUtil ) ) {

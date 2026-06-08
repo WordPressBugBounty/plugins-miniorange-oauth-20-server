@@ -176,9 +176,6 @@ class Miniorange_Oauth_20_Server {
 		// Add feedback form.
 		$this->loader->add_action( 'admin_footer', $plugin_admin, 'mo_oauth_server_feedback_form' );
 
-		// Add security warning notice.
-		$this->loader->add_action( 'admin_notices', $plugin_admin, 'mo_oauth_server_security_warning_message' );
-		
 		$this->loader->add_filter( 'plugin_action_links_' . MOSERVER_BASENAME, $plugin_admin, 'mo_oauth_server_plugin_anchor_links' );
 	}
 

@@ -61,6 +61,13 @@ class Miniorange_Oauth_20_Server_Public {
 	private $version;
 
 	/**
+	 * Cached MoPdo storage instance for reuse within a single request.
+	 *
+	 * @var MoPdo|null
+	 */
+	private $storage_instance = null;
+
+	/**
 	 * Initialize the class and set its properties.
 	 *
 	 * @since    1.0.0
@@ -144,8 +151,8 @@ class Miniorange_Oauth_20_Server_Public {
 			}
 
 			$request  = Request::createFromGlobals();
-			if(isset($request->query['state'])) {
-				$request->query['state'] = stripslashes($request->query['state']);
+			if ( isset( $request->query['state'] ) ) {
+				$request->query['state'] = stripslashes( $request->query['state'] );
 			}
 			$response = new Response();
 			$server   = $this->mo_oauth_server_init();
@@ -321,8 +328,15 @@ class Miniorange_Oauth_20_Server_Public {
 	public function mo_oauth_server_token() {
 		MO_OAuth_Server_Debug::error_log( 'Token Endpoint execution started.' );
 		ob_end_clean();
-		if ( isset( $_POST['grant_type'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification -- This is a REST endpoint and is called from external platform
-			$grant          = sanitize_text_field( wp_unslash( $_POST['grant_type'] ) ); // phpcs:ignore WordPress.Security.NonceVerification -- This is a REST endpoint and is called from external platform
+
+		// Build the request first so grant_type is read uniformly from both
+		// application/x-www-form-urlencoded and application/json bodies.
+		// Checking $_POST alone misses JSON requests, allowing disallowed grant
+		// types (e.g. password) to bypass the allowlist (WPSEC-329).
+		$request = Request::createFromGlobals();
+		$grant   = sanitize_text_field( wp_unslash( $request->request( 'grant_type' ) ) );
+
+		if ( ! empty( $grant ) ) {
 			$allowed_grants = array( 'authorization_code' );
 			if ( ! in_array( $grant, $allowed_grants, true ) ) {
 
@@ -338,7 +352,7 @@ class Miniorange_Oauth_20_Server_Public {
 				);
 			}
 		}
-		$request = Request::createFromGlobals();
+
 		$server  = $this->mo_oauth_server_init();
 		$this->mo_oauth_server_set_allow_origin( $request );
 
@@ -550,14 +564,20 @@ class Miniorange_Oauth_20_Server_Public {
 					update_user_meta( $user->ID, 'mo_oauth_server_granted_' . sanitize_text_field( wp_unslash( $_REQUEST['client_id'] ) ), $response );
 					$current_url    = explode( '?', $this->mo_oauth_server_get_current_page_url() )[0];
 					$_GET['prompt'] = $response;
-					if (isset($_GET['state'])) {
-						$_GET['state'] = stripslashes($_GET['state']); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Need to send state param as is.
+					if ( isset( $_GET['state'] ) ) {
+						$_GET['state'] = stripslashes( $_GET['state'] ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Need to send state param as is.
 					}
 					wp_safe_redirect( $current_url . '?' . http_build_query( $_GET ) );
 				}
 			} elseif ( ( isset( $_POST['mo_oauth_server_authorize_dialog_deny_form_field'] ) && wp_verify_nonce( sanitize_key( wp_unslash( $_POST['mo_oauth_server_authorize_dialog_deny_form_field'] ) ), 'mo_oauth_server_authorize_dialog_deny_form' ) ) ) {
 				$error_message = Miniorange_Oauth_20_Server_Oauth_Constants::DENY_AUTHORIZATION;
-				$redirect_uri  = isset( $_GET['redirect_uri'] ) ? esc_url_raw( wp_unslash( $_GET['redirect_uri'] ) ) : wp_die( esc_html( $error_message ) );
+				$client_id     = isset( $_REQUEST['client_id'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['client_id'] ) ) : null;
+				$registered_uri = $this->mo_oauth_server_get_registered_redirect_uri( $client_id );
+				if ( ! $registered_uri ) {
+					wp_die( esc_html( $error_message ) );
+				}
+				// Use only the first URI if multiple are registered (space-separated).
+				$redirect_uri  = preg_split( '/\s+/', trim( $registered_uri ) )[0];
 				$redirect_uri .= strpos( $redirect_uri, '?' ) !== false ? '&' : '?';
 				$redirect_uri .= 'error=' . urlencode( $error_message );
 				wp_safe_redirect( $redirect_uri );
@@ -587,16 +607,53 @@ class Miniorange_Oauth_20_Server_Public {
 	/**
 	 * Summary of mo_oauth_server_set_allow_origin
 	 *
-	 * Allows the redirect URI access across origin.
+	 * Sets the CORS Access-Control-Allow-Origin header using the client's registered redirect URI.
 	 *
-	 * @param mixed $request to allow origin.
+	 * @param mixed $request the current OAuth request.
 	 * @return void
 	 */
 	public function mo_oauth_server_set_allow_origin( $request ) {
-		if ( isset( $request->request['redirect_uri'] ) ) {
-			$redirect_uri = explode( '/', $request->request['redirect_uri'] );
-			header( 'Access-Control-Allow-Origin:' . $redirect_uri[0] . '//' . $redirect_uri[2] );
+		$client_id = isset( $request->request['client_id'] ) ? sanitize_text_field( $request->request['client_id'] ) : null;
+		if ( ! $client_id ) {
+			return;
 		}
+		$registered_uri = $this->mo_oauth_server_get_registered_redirect_uri( $client_id );
+		if ( ! $registered_uri ) {
+			return;
+		}
+		// Use only the first URI if multiple are registered (space-separated).
+		$first_uri = preg_split( '/\s+/', trim( $registered_uri ) )[0];
+		$parsed    = wp_parse_url( $first_uri );
+		if ( $parsed && isset( $parsed['scheme'], $parsed['host'] ) ) {
+			$origin = $parsed['scheme'] . '://' . $parsed['host'];
+			if ( isset( $parsed['port'] ) ) {
+				$origin .= ':' . $parsed['port'];
+			}
+			header( 'Access-Control-Allow-Origin: ' . $origin );
+		}
+	}
+
+	/**
+	 * Summary of mo_oauth_server_get_registered_redirect_uri
+	 *
+	 * Retrieves the registered redirect_uri for a given client from storage.
+	 *
+	 * @param string $client_id the OAuth client ID.
+	 * @return string|null
+	 */
+	private function mo_oauth_server_get_registered_redirect_uri( $client_id ) {
+		if ( ! $client_id ) {
+			return null;
+		}
+		$sqlite_file = MINIORANGE_OAUTH_20_SERVER_PLUGIN_DIR_PATH . DIRECTORY_SEPARATOR . 'data' . DIRECTORY_SEPARATOR . 'oauth.sqlite';
+		if ( ! file_exists( $sqlite_file ) ) {
+			return null;
+		}
+		if ( null === $this->storage_instance ) {
+			$this->storage_instance = new MoPdo( array( 'dsn' => 'sqlite:' . $sqlite_file ) );
+		}
+		$client_data = $this->storage_instance->getClientDetails( $client_id );
+		return ( $client_data && ! empty( $client_data['redirect_uri'] ) ) ? $client_data['redirect_uri'] : null;
 	}
 
 

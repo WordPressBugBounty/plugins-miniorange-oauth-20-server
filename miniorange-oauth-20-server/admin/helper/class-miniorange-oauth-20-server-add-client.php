@@ -54,8 +54,21 @@ class Miniorange_Oauth_20_Server_Add_Client {
 			return false;
 		}
 
-		$mo_oauth_server_db         = new Mo_Oauth_Server_Db();
-		$clientlist                 = $mo_oauth_server_db->get_clients();
+		$mo_oauth_server_db = new Mo_Oauth_Server_Db();
+		$clientlist         = $mo_oauth_server_db->get_clients();
+
+		if ( ! empty( $clientlist ) ) {
+			if ( $from_ability ) {
+				return array(
+					'success' => false,
+					'message' => 'Only one OAuth client application can be configured. Delete the existing application before creating a new one.',
+				);
+			}
+			update_option( 'message', 'Only one OAuth client application can be configured. Delete the existing application before creating a new one.', false );
+			$this->utils->mo_oauth_show_error_message();
+			return false;
+		}
+
 		$is_client_secret_encrypted = 1;
 		update_option( 'mo_oauth_server_is_client_secret_encrypted', $is_client_secret_encrypted, false );
 		$client_secret = $this->utils->mo_oauth_server_encrypt( $this->utils->moos_generate_random_string( 32 ), $client_name );
@@ -63,9 +76,10 @@ class Miniorange_Oauth_20_Server_Add_Client {
 		$active_oauth_server_id = get_current_blog_id();
 
 		$jwt_signing_algorithm = 'RS256';
-		require_once MINIORANGE_OAUTH_20_SERVER_PLUGIN_DIR_PATH . 'admin/secrets/class-mo-oauth-server-keys.php';
-		$private_key = MO_OAuth_Server_Keys::$private_key;
-		$public_key  = MO_OAuth_Server_Keys::$public_key;
+		require_once MINIORANGE_OAUTH_20_SERVER_PLUGIN_DIR_PATH . 'admin/helper/class-miniorange-oauth-20-server-key-manager.php';
+		$rsa_keys    = Mo_Oauth_Server_Key_Manager::generate_key_pair();
+		$private_key = $rsa_keys ? $rsa_keys['private_key'] : '';
+		$public_key  = $rsa_keys ? $rsa_keys['public_key'] : '';
 
 		$added = $mo_oauth_server_db->add_client( $client_name, $client_secret, $redirect_uri, $active_oauth_server_id, $jwt_signing_algorithm, $private_key, $public_key );
 
@@ -80,6 +94,8 @@ class Miniorange_Oauth_20_Server_Add_Client {
 			$this->utils->mo_oauth_show_error_message();
 			return false;
 		}
+
+		Mo_Oauth_Server_Key_Manager::mark_keys_generated();
 
 		if ( $from_ability ) {
 			return array(

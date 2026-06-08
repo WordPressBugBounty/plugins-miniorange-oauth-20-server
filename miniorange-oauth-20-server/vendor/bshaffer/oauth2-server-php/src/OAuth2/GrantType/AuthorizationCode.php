@@ -66,6 +66,15 @@ class AuthorizationCode implements GrantTypeInterface {
 
 		$this->authCode = $authCode;
 
+		// Validate redirect_uri against the one stored with the authorization code.
+		$redirect_uri = $request->request( 'redirect_uri' );
+		if ( ! empty( $authCode['redirect_uri'] ) ) {
+			if ( ! $redirect_uri || strcmp( $redirect_uri, $authCode['redirect_uri'] ) !== 0 ) {
+				$response->setError( 400, 'redirect_uri_mismatch', 'The redirect URI provided does not match the one used in the authorization request' );
+				return false;
+			}
+		}
+
 		return true;
 	}
 

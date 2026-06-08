@@ -39,7 +39,7 @@ class AuthorizeController implements AuthorizeControllerInterface {
 	 *                                                      </code>
 	 * @param OAuth2\ScopeInterface          $scopeUtil     OPTIONAL Instance of OAuth2\ScopeInterface to validate the requested scope
 	 */
-	public function __construct( ClientInterface $clientStorage, array $responseTypes = array(), array $config = array(), ScopeInterface $scopeUtil = null ) {
+	public function __construct( ClientInterface $clientStorage, array $responseTypes = array(), array $config = array(), ?ScopeInterface $scopeUtil = null ) {
 		$this->clientStorage = $clientStorage;
 		$this->responseTypes = $responseTypes;
 		$this->config        = array_merge(
@@ -156,6 +156,19 @@ class AuthorizeController implements AuthorizeControllerInterface {
 
 		$state        = $request->query( 'state', $request->request( 'state' ) );
 		$redirect_uri = $request->query( 'redirect_uri', $request->request( 'redirect_uri' ) );
+
+		// Validate redirect_uri against the registered client URI.
+		$registered_redirect_uri = isset( $clientData['redirect_uri'] ) ? $clientData['redirect_uri'] : null;
+		if ( $redirect_uri ) {
+			if ( ! $this->validateRedirectUri( $redirect_uri, $registered_redirect_uri ) ) {
+				$response->setError( 400, 'redirect_uri_mismatch', 'The redirect URI provided is missing or does not match' );
+				return false;
+			}
+		} elseif ( ! $registered_redirect_uri ) {
+			$response->setError( 400, 'redirect_uri_mismatch', 'No redirect URI was supplied or registered' );
+			return false;
+		}
+
 		// type and client_id are required
 		if ( ! $response_type || ! in_array( $response_type, $this->getValidResponseTypes() ) ) {
 			$response->setError( 400, 'invalid_request', 'Invalid or missing response type' );

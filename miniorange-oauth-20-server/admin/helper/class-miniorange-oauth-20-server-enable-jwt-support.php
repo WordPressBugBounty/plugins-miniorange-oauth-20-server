@@ -139,11 +139,13 @@ class Miniorange_Oauth_20_Server_Enable_JWT_Support {
 					}
 					if ( isset( $algo[0] ) && 'R' === $algo[0] ) {
 
-						require_once MINIORANGE_OAUTH_20_SERVER_PLUGIN_DIR_PATH . 'admin/secrets/class-mo-oauth-server-keys.php';
-						$private_key = MO_OAuth_Server_Keys::$private_key;
-						$public_key  = MO_OAuth_Server_Keys::$public_key;
+						require_once MINIORANGE_OAUTH_20_SERVER_PLUGIN_DIR_PATH . 'admin/helper/class-miniorange-oauth-20-server-key-manager.php';
+						$rsa_keys    = Mo_Oauth_Server_Key_Manager::generate_key_pair();
+						$private_key = $rsa_keys ? $rsa_keys['private_key'] : '';
+						$public_key  = $rsa_keys ? $rsa_keys['public_key'] : '';
 
 						$wpdb->query( $wpdb->prepare( 'UPDATE ' . $wpdb->base_prefix . 'moos_oauth_public_keys SET public_key = %s, private_key = %s, encryption_algorithm = %s WHERE client_id = %s', $public_key, $private_key, $current_config, $myrows[0]->client_id ) ); //phpcs:ignore WordPress.DB.DirectDatabaseQuery
+						Mo_Oauth_Server_Key_Manager::mark_keys_generated();
 					} else {
 						$wpdb->query( $wpdb->prepare( 'UPDATE ' . $wpdb->base_prefix . "moos_oauth_public_keys SET public_key = '', private_key = %s, encryption_algorithm = %s WHERE client_id = %s", $myrows[0]->client_secret, $current_config, $myrows[0]->client_id ) ); //phpcs:ignore WordPress.DB.DirectDatabaseQuery
 					}

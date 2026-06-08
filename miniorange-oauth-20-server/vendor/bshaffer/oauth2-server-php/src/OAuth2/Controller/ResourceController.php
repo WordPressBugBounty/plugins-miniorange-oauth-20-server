@@ -21,7 +21,7 @@ class ResourceController implements ResourceControllerInterface {
 	protected $config;
 	protected $scopeUtil;
 
-	public function __construct( TokenTypeInterface $tokenType, AccessTokenInterface $tokenStorage, $config = array(), ScopeInterface $scopeUtil = null ) {
+	public function __construct( TokenTypeInterface $tokenType, AccessTokenInterface $tokenStorage, $config = array(), ?ScopeInterface $scopeUtil = null ) {
 		$this->tokenType    = $tokenType;
 		$this->tokenStorage = $tokenStorage;
 

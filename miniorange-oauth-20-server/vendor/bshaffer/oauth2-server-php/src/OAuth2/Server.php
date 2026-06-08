@@ -98,7 +98,7 @@ class Server implements ResourceControllerInterface,
 	 *
 	 * @ingroup oauth2_section_7
 	 */
-	public function __construct( $storage = array(), array $config = array(), array $grantTypes = array(), array $responseTypes = array(), TokenTypeInterface $tokenType = null, ScopeInterface $scopeUtil = null, ClientAssertionTypeInterface $clientAssertionType = null ) {
+	public function __construct( $storage = array(), array $config = array(), array $grantTypes = array(), array $responseTypes = array(), ?TokenTypeInterface $tokenType = null, ?ScopeInterface $scopeUtil = null, ?ClientAssertionTypeInterface $clientAssertionType = null ) {
 		$storage        = is_array( $storage ) ? $storage : array( $storage );
 		$this->storages = array();
 		foreach ( $storage as $key => $service ) {
@@ -219,7 +219,7 @@ class Server implements ResourceControllerInterface,
 	 *
 	 * @see http://openid.net/specs/openid-connect-core-1_0.html#UserInfo
 	 */
-	public function handleUserInfoRequest( RequestInterface $request, ResponseInterface $response = null ) {
+	public function handleUserInfoRequest( RequestInterface $request, ?ResponseInterface $response = null ) {
 		$this->response = is_null( $response ) ? new Response() : $response;
 		$this->getUserInfoController()->handleUserInfoRequest( $request, $this->response );
 
@@ -246,13 +246,13 @@ class Server implements ResourceControllerInterface,
 	 *
 	 * @ingroup oauth2_section_4
 	 */
-	public function handleTokenRequest( RequestInterface $request, ResponseInterface $response = null ) {
+	public function handleTokenRequest( RequestInterface $request, ?ResponseInterface $response = null ) {
 		$this->response = is_null( $response ) ? new Response() : $response;
 		$this->getTokenController()->handleTokenRequest( $request, $this->response );
 		return $this->response;
 	}
 
-	public function grantAccessToken( RequestInterface $request, ResponseInterface $response = null ) {
+	public function grantAccessToken( RequestInterface $request, ?ResponseInterface $response = null ) {
 		$this->response = is_null( $response ) ? new Response() : $response;
 		$value          = $this->getTokenController()->grantAccessToken( $request, $this->response );
 
@@ -269,7 +269,7 @@ class Server implements ResourceControllerInterface,
 	 * @param ResponseInterface $response
 	 * @return Response|ResponseInterface
 	 */
-	public function handleRevokeRequest( RequestInterface $request, ResponseInterface $response = null ) {
+	public function handleRevokeRequest( RequestInterface $request, ?ResponseInterface $response = null ) {
 		$this->response = is_null( $response ) ? new Response() : $response;
 		$this->getTokenController()->handleRevokeRequest( $request, $this->response );
 
@@ -330,21 +330,21 @@ class Server implements ResourceControllerInterface,
 	 *
 	 * @ingroup oauth2_section_3
 	 */
-	public function validateAuthorizeRequest( RequestInterface $request, ResponseInterface $response = null ) {
+	public function validateAuthorizeRequest( RequestInterface $request, ?ResponseInterface $response = null ) {
 		$this->response = is_null( $response ) ? new Response() : $response;
 		$value          = $this->getAuthorizeController()->validateAuthorizeRequest( $request, $this->response );
 
 		return $value;
 	}
 
-	public function verifyResourceRequest( RequestInterface $request, ResponseInterface $response = null, $scope = null ) {
+	public function verifyResourceRequest( RequestInterface $request, ?ResponseInterface $response = null, $scope = null ) {
 		$this->response = is_null( $response ) ? new Response() : $response;
 		$value          = $this->getResourceController()->verifyResourceRequest( $request, $this->response, $scope );
 
 		return $value;
 	}
 
-	public function getAccessTokenData( RequestInterface $request, ResponseInterface $response = null ) {
+	public function getAccessTokenData( RequestInterface $request, ?ResponseInterface $response = null ) {
 		$this->response = is_null( $response ) ? new Response() : $response;
 		$value          = $this->getResourceController()->getAccessTokenData( $request, $this->response );
 

@@ -129,12 +129,37 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 
 		<?php if ( 'checked' === $jwt_switch ) : ?>
 			<div class="field columns">
-				<label class="label column is-one-quarter">Signing Algorithm:</label>
-				<div class="select column is-fullwidth" id="signing-algo">
-					<select class="column" name="mo_oauth_server_jwt_signing_algo_for_<?php echo esc_attr( $client->client_name ); ?>">
-						<option value="HS256" <?php echo 'HS256' === $jwt_signing_algo ? 'selected' : ''; ?>>HS256</option>
-						<option value="RS256" <?php echo 'RS256' === $jwt_signing_algo ? 'selected' : ''; ?>>RS256</option>
-					</select>
+				<label class="label column is-one-quarter mt-2">Signing Algorithm:</label>
+				<div class="column is-three-quarters">
+					<div class="select is-fullwidth" id="signing-algo">
+						<select name="mo_oauth_server_jwt_signing_algo_for_<?php echo esc_attr( $client->client_name ); ?>">
+							<option value="HS256" <?php echo 'HS256' === $jwt_signing_algo ? 'selected' : ''; ?>>HS256</option>
+							<option value="RS256" <?php echo 'RS256' === $jwt_signing_algo ? 'selected' : ''; ?>>RS256</option>
+						</select>
+					</div>
+					<?php
+					require_once MINIORANGE_OAUTH_20_SERVER_PLUGIN_DIR_PATH . 'admin/helper/class-miniorange-oauth-20-server-key-manager.php';
+					if ( 'RS256' === $jwt_signing_algo && ! Mo_Oauth_Server_Key_Manager::site_keys_generated() ) :
+						if ( ! extension_loaded( 'openssl' ) ) :
+					?>
+					<div class="notice notice-warning inline" style="margin-top:8px; padding:6px 12px;">
+						<p>
+							<strong><?php esc_html_e( 'Security notice:', 'miniorange-oauth-20-server' ); ?></strong>
+							<?php esc_html_e( 'Your RSA signing keys need to be rotated, but OpenSSL is not installed on your server. Please reach out to your system administrator to enable the PHP OpenSSL extension before proceeding with key rotation.', 'miniorange-oauth-20-server' ); ?>
+						</p>
+					</div>
+					<?php else : ?>
+					<div class="notice notice-warning inline" style="margin-top:8px; padding:6px 12px;">
+						<p>
+							<strong><?php esc_html_e( 'Security notice:', 'miniorange-oauth-20-server' ); ?></strong>
+							<?php esc_html_e( 'Your RSA signing keys need to be rotated. After rotating, update your connected application with the new public key.', 'miniorange-oauth-20-server' ); ?>
+							<button type="submit" form="mo-rotate-rsa-keys-form" class="button-link" style="vertical-align:baseline;">
+								<?php esc_html_e( 'Rotate now', 'miniorange-oauth-20-server' ); ?> &rsaquo;
+							</button>
+						</p>
+					</div>
+					<?php endif; ?>
+					<?php endif; ?>
 				</div>
 			</div>
 		<?php endif; ?>
@@ -153,6 +178,12 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 				<button class="button is-active is-blue is-outlined" type="submit">Download Signing Certificate</button>
 			</div>
 		</form>
+		<?php if ( ! Mo_Oauth_Server_Key_Manager::site_keys_generated() ) : ?>
+		<form id="mo-rotate-rsa-keys-form" action="" method="POST" style="display:none;">
+			<?php wp_nonce_field( 'mo_oauth_server_rotate_rsa_keys', 'mo_oauth_server_rotate_rsa_keys_nonce' ); ?>
+			<input type="hidden" name="mo_oauth_server_rotate_rsa_keys" value="1">
+		</form>
+		<?php endif; ?>
 	<?php endif; ?>
 </div>
 

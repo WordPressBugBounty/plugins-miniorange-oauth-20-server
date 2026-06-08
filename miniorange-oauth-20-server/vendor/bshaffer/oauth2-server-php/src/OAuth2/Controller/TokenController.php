@@ -22,7 +22,7 @@ class TokenController implements TokenControllerInterface {
 	protected $scopeUtil;
 	protected $clientStorage;
 
-	public function __construct( AccessTokenInterface $accessToken, ClientInterface $clientStorage, array $grantTypes = array(), ClientAssertionTypeInterface $clientAssertionType = null, ScopeInterface $scopeUtil = null ) {
+	public function __construct( AccessTokenInterface $accessToken, ClientInterface $clientStorage, array $grantTypes = array(), ?ClientAssertionTypeInterface $clientAssertionType = null, ?ScopeInterface $scopeUtil = null ) {
 		if ( is_null( $clientAssertionType ) ) {
 			foreach ( $grantTypes as $grantType ) {
 				if ( ! $grantType instanceof ClientAssertionTypeInterface ) {
