@@ -64,14 +64,17 @@ class Mo_Oauth_Server_Db {
 	 * @param string $jwt_signing_algorithm the JWT signing algorithm.
 	 * @param string $private_key the private key for the JWT signing algorithm.
 	 * @param string $public_key the public key for the JWT signing algorithm.
-	 * @return bool True when both inserts succeed.
+	 * @param string $client_id Optional pre-supplied client ID; auto-generated when empty.
+	 * @return string|false The client_id on success, false on failure.
 	 */
-	public function add_client( $client_name, $client_secret, $redirect_url, $active_oauth_server_id, $jwt_signing_algorithm, $private_key, $public_key ) {
+	public function add_client( $client_name, $client_secret, $redirect_url, $active_oauth_server_id, $jwt_signing_algorithm, $private_key, $public_key, $client_id = '' ) {
 		global $wpdb;
 		require_once MINIORANGE_OAUTH_20_SERVER_PLUGIN_DIR_PATH . 'admin/helper/class-miniorange-oauth-20-server-utils.php';
-		$mo_utils  = new Miniorange_Oauth_20_Server_Utils();
-		$client_id = $mo_utils->moos_generate_random_string( 32 );
-		//phpcs:ignore WordPress.DB.DirectDatabaseQuery.SchemaChange,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching	
+		$mo_utils = new Miniorange_Oauth_20_Server_Utils();
+		if ( '' === $client_id ) {
+			$client_id = $mo_utils->moos_generate_random_string( 32 );
+		}
+		//phpcs:ignore WordPress.DB.DirectDatabaseQuery.SchemaChange,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
 		$insert_client = $wpdb->query( $wpdb->prepare( 'INSERT INTO ' . $wpdb->base_prefix . 'moos_oauth_clients (client_name, client_id, client_secret, redirect_uri,active_oauth_server_id ) VALUES (%s, %s, %s, %s, %d )', $client_name, $client_id, $client_secret, $redirect_url, $active_oauth_server_id ) );
 
 		if ( false === $insert_client ) {
@@ -87,7 +90,17 @@ class Mo_Oauth_Server_Db {
 			$insert_keys = $wpdb->query( $wpdb->prepare( 'INSERT INTO ' . $wpdb->base_prefix . "moos_oauth_public_keys (client_id, public_key, private_key, encryption_algorithm) VALUES ( %s, '', %s, 'HS256')", $client_id, $client_secret ) );
 		}
 
-		return false !== $insert_keys;
+		if ( false === $insert_keys ) {
+			// Roll back the client row to avoid leaving an orphan.
+			$wpdb->delete( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+				$wpdb->base_prefix . 'moos_oauth_clients',
+				array( 'client_id' => $client_id ),
+				array( '%s' )
+			);
+			return false;
+		}
+
+		return $client_id;
 	}
 
 	/**

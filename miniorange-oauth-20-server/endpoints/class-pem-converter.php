@@ -5,6 +5,8 @@
  * @package PEM
  */
 
+if ( ! defined( 'ABSPATH' ) ) exit;
+
 if ( ! class_exists( 'Pem_Converter' ) ) {
 	/**
 	 * Summary of Pem_Converter

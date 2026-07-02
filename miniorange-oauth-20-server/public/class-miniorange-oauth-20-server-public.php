@@ -9,6 +9,8 @@
  * @subpackage Miniorange_Oauth_20_Server/public
  */
 
+if ( ! defined( 'ABSPATH' ) ) exit;
+
 /**
  * This file is used to markup the public-facing aspects of the plugin.
  */

@@ -58,7 +58,7 @@ class Miniorange_Oauth_20_Server_Log_Download {
 		$file_name = $log_dir . 'wp_oauth_server_errors.log';
 
 		if ( ! file_exists( $file_name ) ) {
-			update_option( 'message', 'Log file does not exist.' );
+			update_option( 'mo_oauth_server_message', 'Log file does not exist.' );
 			$this->utils->mo_oauth_show_error_message();
 		}
 

@@ -49,7 +49,7 @@ class Miniorange_Oauth_20_Server_Add_Client {
 					'message' => 'Client name is empty, please provide a client name.',
 				);
 			}
-			update_option( 'message', 'Client name is empty, please provide a client name.', false );
+			update_option( 'mo_oauth_server_message', 'Client name is empty, please provide a client name.', false );
 			$this->utils->mo_oauth_show_error_message();
 			return false;
 		}
@@ -64,7 +64,7 @@ class Miniorange_Oauth_20_Server_Add_Client {
 					'message' => 'Only one OAuth client application can be configured. Delete the existing application before creating a new one.',
 				);
 			}
-			update_option( 'message', 'Only one OAuth client application can be configured. Delete the existing application before creating a new one.', false );
+			update_option( 'mo_oauth_server_message', 'Only one OAuth client application can be configured. Delete the existing application before creating a new one.', false );
 			$this->utils->mo_oauth_show_error_message();
 			return false;
 		}
@@ -90,7 +90,7 @@ class Miniorange_Oauth_20_Server_Add_Client {
 					'message' => 'Could not create the OAuth client application.',
 				);
 			}
-			update_option( 'message', 'Could not create the OAuth client application.', false );
+			update_option( 'mo_oauth_server_message', 'Could not create the OAuth client application.', false );
 			$this->utils->mo_oauth_show_error_message();
 			return false;
 		}

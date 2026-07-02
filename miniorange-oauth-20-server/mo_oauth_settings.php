@@ -15,7 +15,7 @@
  * Plugin Name:       miniOrange OAuth 2.0 Server/Provider
  * Plugin URI:        https://www.miniorange.com
  * Description:       Setup your site as Identity Server to allow Login with WordPress or WordPress Login to other client application /site using OAuth / OpenID Connect protocols.
- * Version:           6.1.6
+ * Version:           6.2.0
  * Requires at least: 4.8
  * Requires PHP:      5.6
  * Author:            miniOrange
@@ -36,7 +36,7 @@ if ( ! defined( 'WPINC' ) ) {
  * Start at version 1.0.0 and use SemVer - https://semver.org
  * Rename this for your plugin and update it as you release new versions.
  */
-define( 'MINIORANGE_OAUTH_20_SERVER_VERSION', '6.1.6' );
+define( 'MINIORANGE_OAUTH_20_SERVER_VERSION', '6.2.0' );
 define( 'MOSERVER_BASENAME', plugin_basename( __FILE__ ));
 define( 'MINIORANGE_OAUTH_20_SERVER_PLUGIN_DIR_URL', plugin_dir_url( __FILE__ ) );
 define( 'MINIORANGE_OAUTH_20_SERVER_PLUGIN_DIR_PATH', plugin_dir_path( __FILE__ ) );

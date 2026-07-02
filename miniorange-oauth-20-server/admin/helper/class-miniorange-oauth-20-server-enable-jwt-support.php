@@ -79,8 +79,8 @@ class Miniorange_Oauth_20_Server_Enable_JWT_Support {
 		} else {
 			$app_display_name = $this->utils->mo_oauth_get_sanitized_post_value( 'mo_oauth_server_appname' );
 			if ( null === $app_display_name || '' === $app_display_name ) {
-				update_option( 'message', 'There was an error saving configuration, please try again.' );
-				$this->utils->mo_oauth_show_success_message();
+				update_option( 'mo_oauth_server_message', 'There was an error saving configuration, please try again.' );
+				$this->utils->mo_oauth_show_error_message();
 				wp_safe_redirect( 'admin.php?page=mo_oauth_server_settings&tab=config' );
 				exit;
 			}
@@ -128,7 +128,7 @@ class Miniorange_Oauth_20_Server_Enable_JWT_Support {
 			if ( $previous_setting !== $new_algo ) {
 				update_option( 'mo_oauth_server_jwt_signing_algo_for_' . $client_name, $new_algo );
 				if ( ! $from_ability ) {
-					$myrows = $wpdb->get_results( $wpdb->prepare( 'SELECT * FROM ' . $wpdb->base_prefix . 'moos_oauth_clients WHERE client_name = %s and active_oauth_server_id = %d', sanitize_text_field( wp_unslash( $_POST['mo_oauth_server_appname'] ) ), get_current_blog_id() ) ); //phpcs:ignore WordPress.DB.DirectDatabaseQuery
+					$myrows = $wpdb->get_results( $wpdb->prepare( 'SELECT * FROM ' . $wpdb->base_prefix . 'moos_oauth_clients WHERE client_name = %s and active_oauth_server_id = %d', $app_display_name, get_current_blog_id() ) ); //phpcs:ignore WordPress.DB.DirectDatabaseQuery
 				}
 				if ( $from_ability || ! empty( $myrows ) ) {
 					$current_config = $new_algo;
@@ -160,7 +160,7 @@ class Miniorange_Oauth_20_Server_Enable_JWT_Support {
 			);
 		}
 
-		update_option( 'message', 'Your settings are saved successfully.' );
+		update_option( 'mo_oauth_server_message', 'Your settings are saved successfully.' );
 		$this->utils->mo_oauth_show_success_message();
 		wp_safe_redirect( 'admin.php?page=mo_oauth_server_settings&tab=config&action=update&client=' . str_replace( '_', '+', $client_name ) );
 		exit;

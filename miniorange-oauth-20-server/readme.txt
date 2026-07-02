@@ -4,7 +4,7 @@ Tags: WordPress Login, OAuth Provider, OAuth Server, OAuth2, OpenID
 Requires at least: 4.8
 Tested up to: 7.0
 Requires PHP: 5.6
-Stable tag: 6.1.6
+Stable tag: 6.2.0
 License: Expat
 License URI: https://plugins.miniorange.com/mit-license
 
@@ -173,6 +173,11 @@ Yes, you can enable/disable consent screen using the <a href="https://plugins.mi
 
 
 == Changelog ==
+
+= 6.2.0 =
+* Removed security template of JWT Signing from both email & admin notice.
+* UI fixes.
+
 
 = 6.1.6 =
 * JWT Signing Certs rollover.
@@ -460,6 +465,10 @@ Yes, you can enable/disable consent screen using the <a href="https://plugins.mi
 * Initial Release
 
 == Upgrade Notice ==
+
+= 6.2.0 =
+* Removed security template of JWT Signing from both email & admin notice.
+* UI fixes.
 
 = 6.1.6 =
 * JWT Signing Certs rollover.

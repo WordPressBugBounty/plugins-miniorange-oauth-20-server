@@ -306,7 +306,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 				$client_settings = $oauth_client_list_json_data['wordpress'];
 			}
 
-			if ( 1 === $no_of_configured_clients ) {
+			if ( $no_of_configured_clients >= 1 ) {
 				$client = $clientlist[0];
 
 				require_once MINIORANGE_OAUTH_20_SERVER_PLUGIN_DIR_PATH . 'admin/helper/class-miniorange-oauth-20-server-utils.php';

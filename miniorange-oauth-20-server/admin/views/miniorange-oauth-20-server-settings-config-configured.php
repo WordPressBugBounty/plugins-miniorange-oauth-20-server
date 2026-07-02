@@ -85,8 +85,8 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 					<td class="has-text-weight-semibold"><?php echo esc_attr( $client_settings['client_id_label'] ); ?>:</td>
 					<td class="endpoint"><?php echo esc_attr( $client_id ); ?></td>
 					<td>
-						<div class="mx-auto is-clickable">
-							<a class="is-grey" data-tooltip="Copy Client ID"><i class="fa-solid fa-copy copy-tooltip"></i></a>
+						<div class="mx-auto">
+							<button type="button" class="is-grey" data-tooltip="Copy Client ID"><i class="fa-solid fa-copy copy-tooltip"></i></button>
 						</div>
 					</td>
 				</tr>
@@ -96,9 +96,9 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 					<td class="has-text-weight-semibold"><?php echo esc_attr( $client_settings['client_secret_label'] ); ?>:</td>
 					<td class="endpoint"><input class="input is-static is-borderless" type="password" id="client-secret" value="<?php echo esc_attr( $client_secret ); ?>" readonly></td>
 					<td>
-						<div class="mx-auto is-clickable">
-							<a class="is-grey" data-tooltip="Copy Client Secret"><i class="fa-solid fa-copy copy-tooltip"></i></a>
-							<a class="is-grey" id="eye-tooltip" data-tooltip="Show Client Secret"><i class="fa-solid fa-eye" id="eye_icon"></i></a>
+						<div class="mx-auto">
+							<button type="button" class="is-grey" data-tooltip="Copy Client Secret"><i class="fa-solid fa-copy copy-tooltip"></i></button>
+							<button type="button" class="is-grey" id="eye-tooltip" data-tooltip="Show Client Secret"><i class="fa-solid fa-eye" id="eye_icon"></i></button>
 						</div>
 					</td>
 				</tr>
@@ -215,8 +215,8 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 				<td class="has-text-weight-semibold"><?php echo esc_attr( $client_settings['authorize_url_label'] ); ?>:</td>
 				<td class="endpoint"><?php echo esc_url( $home_url_plus_rest_prefix ) . '/moserver/authorize'; ?></td>
 				<td>
-					<div class="mx-auto is-clickable">
-						<a class="is-grey" data-tooltip="Copy Authorization Endpoint"><i class="fa-solid fa-copy copy-tooltip"></i></a>
+					<div class="mx-auto">
+						<button type="button" class="is-grey" data-tooltip="Copy Authorization Endpoint"><i class="fa-solid fa-copy copy-tooltip"></i></button>
 					</div>
 				</td>
 			</tr>
@@ -226,8 +226,8 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 				<td class="has-text-weight-semibold"><?php echo esc_attr( $client_settings['token_url_label'] ); ?>:</td>
 				<td class="endpoint"><?php echo esc_url( $home_url_plus_rest_prefix ) . '/moserver/token'; ?></td>
 				<td>
-					<div class="mx-auto is-clickable">
-						<a class="is-grey" data-tooltip="Copy Token Endpoint"><i class="fa-solid fa-copy copy-tooltip"></i></a>
+					<div class="mx-auto">
+						<button type="button" class="is-grey" data-tooltip="Copy Token Endpoint"><i class="fa-solid fa-copy copy-tooltip"></i></button>
 					</div>
 				</td>
 			</tr>
@@ -237,8 +237,8 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 				<td class="has-text-weight-semibold"><?php echo esc_attr( $client_settings['userinfo_url_label'] ); ?>:</td>
 				<td class="endpoint"><?php echo esc_url( $home_url_plus_rest_prefix ) . '/moserver/resource'; ?></td>
 				<td>
-					<div class="mx-auto is-clickable">
-						<a class="is-grey" data-tooltip="Copy Get USer Info Endpoint"><i class="fa-solid fa-copy copy-tooltip"></i></a>
+					<div class="mx-auto">
+						<button type="button" class="is-grey" data-tooltip="Copy Get User Info Endpoint"><i class="fa-solid fa-copy copy-tooltip"></i></button>
 					</div>
 				</td>
 			</tr>
@@ -248,8 +248,8 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 				<td class="has-text-weight-semibold"><?php echo esc_attr( $client_settings['scopes_label'] ); ?>:</td>
 				<td class="endpoint">openid profile email</td>
 				<td>
-					<div class="mx-auto is-clickable">
-						<a class="is-grey" data-tooltip="Copy Scopes"><i class="fa-solid fa-copy copy-tooltip"></i></a>
+					<div class="mx-auto">
+						<button type="button" class="is-grey" data-tooltip="Copy Scopes"><i class="fa-solid fa-copy copy-tooltip"></i></button>
 					</div>
 				</td>
 			</tr>
@@ -259,8 +259,8 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 				<td class="has-text-weight-semibold"><?php echo esc_attr( $client_settings['discovery_url_label'] ); ?>:</td>
 				<td class="endpoint"><?php echo esc_url( $home_url_plus_rest_prefix ) . '/moserver/' . esc_attr( $client->client_id ) . '/.well-known/openid-configuration'; ?></td>
 				<td>
-					<div class="mx-auto is-clickable">
-						<a class="is-grey" data-tooltip="Copy Discovery Endpoint"><i class="fa-solid fa-copy copy-tooltip"></i></a>
+					<div class="mx-auto">
+						<button type="button" class="is-grey" data-tooltip="Copy Discovery Endpoint"><i class="fa-solid fa-copy copy-tooltip"></i></button>
 					</div>
 				</td>
 			</tr>
@@ -270,8 +270,8 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 				<td class="has-text-weight-semibold"><?php echo esc_attr( $client_settings['jwks_url_label'] ); ?>:</td>
 				<td class="endpoint"><?php echo esc_url( $home_url_plus_rest_prefix ) . '/moserver/' . esc_attr( $client->client_id ) . '/.well-known/keys'; ?></td>
 				<td>
-					<div class="mx-auto is-clickable">
-						<a class="is-grey" data-tooltip="Copy JWKS URL"><i class="fa-solid fa-copy copy-tooltip"></i></a>
+					<div class="mx-auto">
+						<button type="button" class="is-grey" data-tooltip="Copy JWKS URL"><i class="fa-solid fa-copy copy-tooltip"></i></button>
 					</div>
 				</td>
 			</tr>
@@ -281,8 +281,8 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 				<td class="has-text-weight-semibold"><?php echo esc_attr( $client_settings['issuer_url_label'] ); ?>:</td>
 				<td class="endpoint"><?php echo esc_url( $home_url_plus_rest_prefix ) . '/moserver/' . esc_attr( $client->client_id ); ?></td>
 				<td>
-					<div class="mx-auto is-clickable">
-						<a class="is-grey" data-tooltip="Copy Issuer"><i class="fa-solid fa-copy copy-tooltip"></i></a>
+					<div class="mx-auto">
+						<button type="button" class="is-grey" data-tooltip="Copy Issuer"><i class="fa-solid fa-copy copy-tooltip"></i></button>
 					</div>
 				</td>
 			</tr>

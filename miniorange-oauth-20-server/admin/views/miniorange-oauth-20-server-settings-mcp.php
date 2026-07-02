@@ -2,6 +2,9 @@
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
+
+// wp_get_abilities() requires WP 6.9+; the call below is guarded by a function_exists() check, so this file stays compatible with the plugin's "Requires at least: 4.8" header.
+
 /**
  * MCP Settings admin view.
  *
@@ -18,6 +21,12 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 
 $mo_oauth_server_mcp_endpoint_url = rest_url( 'moserver/mcp' );
+
+// claude.ai (the hosted web/desktop connector) discovers the OAuth server via a
+// bare-host /.well-known probe, site's home URL has a non-empty path.
+$mo_oauth_server_mcp_home_path = wp_parse_url( home_url(), PHP_URL_PATH );
+$mo_oauth_server_mcp_home_path = is_string( $mo_oauth_server_mcp_home_path ) ? trim( $mo_oauth_server_mcp_home_path, '/' ) : '';
+$mo_oauth_server_mcp_in_subdir = ( '' !== $mo_oauth_server_mcp_home_path );
 
 // Collect all registered abilities for the checkbox list.
 $mo_oauth_server_mcp_all_abilities = array();
@@ -72,6 +81,14 @@ $mo_oauth_server_mcp_over_limit      = $mo_oauth_server_mcp_selected_count > 128
 						</button>
 					</div>
 				</div>
+				<?php if ( $mo_oauth_server_mcp_in_subdir ) : ?>
+				<div class="notification is-warning is-light mt-3" style="border-left: 4px solid #ffb300;">
+					<p class="is-size-6">
+						<i class="fa-solid fa-triangle-exclamation mr-1"></i>
+						This site runs in a sub-directory (<code>/<?php echo esc_html( $mo_oauth_server_mcp_home_path ); ?>/</code>). Some AI assistants discover the server from the host root instead of this path, which can break the connection. Please reach out to us if this happens.
+					</p>
+				</div>
+				<?php endif; ?>
 			</div>
 		</div>
 		<?php endif; ?>

@@ -44,7 +44,7 @@ class Miniorange_Oauth_20_Server_Demo_Request {
 			}
 
 			if ( $this->utils->mo_oauth_check_empty_or_null( $email ) || $this->utils->mo_oauth_check_empty_or_null( $demo_plan ) || $this->utils->mo_oauth_check_empty_or_null( $query ) ) {
-				update_option( 'message', 'Please fill up Usecase and Email field to submit your query.' );
+				update_option( 'mo_oauth_server_message', 'Please fill up Usecase and Email field to submit your query.' );
 				$this->utils->mo_oauth_show_error_message();
 			} else {
 				$customer = new Mo_Oauth_Server_Customer();
@@ -52,10 +52,10 @@ class Miniorange_Oauth_20_Server_Demo_Request {
 				$submited = $customer->demo_request( $email, $query );
 
 				if ( false === $submited ) {
-					update_option( 'message', 'Your query could not be submitted. Please try again.', false );
+					update_option( 'mo_oauth_server_message', 'Your query could not be submitted. Please try again.', false );
 					$this->utils->mo_oauth_show_error_message();
 				} else {
-					update_option( 'message', 'Thanks for getting in touch! We shall get back to you shortly.', false );
+					update_option( 'mo_oauth_server_message', 'Thanks for getting in touch! We shall get back to you shortly.', false );
 					$this->utils->mo_oauth_show_success_message();
 				}
 			}
@@ -78,7 +78,7 @@ class Miniorange_Oauth_20_Server_Demo_Request {
 			}
 
 			if ( $this->utils->mo_oauth_check_empty_or_null( $email ) || $this->utils->mo_oauth_check_empty_or_null( $call_date ) || $this->utils->mo_oauth_check_empty_or_null( $query ) || $this->utils->mo_oauth_check_empty_or_null( $time_diff ) || $this->utils->mo_oauth_check_empty_or_null( $call_time ) ) {
-				update_option( 'message', 'Please fill up all the required details to submit your query.' );
+				update_option( 'mo_oauth_server_message', 'Please fill up all the required details to submit your query.' );
 				$this->utils->mo_oauth_show_error_message();
 			} else {
 				$mo_oauth_video_demo_request_validated = false;
@@ -127,14 +127,14 @@ class Miniorange_Oauth_20_Server_Demo_Request {
 					'<br><br><div>Customer local time (' . $call_time_zone . ') : ' . $call_time . ' on ' . $call_date . '<br><br>IST format    : ' . $ist_time . ' on ' . $ist_date . '<br><br>Requirements (User usecase)           : ' . $query . '</div>';
 					$submited = $customer->demo_request( $email, $query );
 					if ( false === $submited ) {
-						update_option( 'message', 'Your query could not be submitted. Please try again.', false );
+						update_option( 'mo_oauth_server_message', 'Your query could not be submitted. Please try again.', false );
 						$this->utils->mo_oauth_show_error_message();
 					} else {
-						update_option( 'message', 'Thanks for getting in touch! We shall get back to you shortly.', false );
+						update_option( 'mo_oauth_server_message', 'Thanks for getting in touch! We shall get back to you shortly.', false );
 						$this->utils->mo_oauth_show_success_message();
 					}
 				} else {
-					update_option( 'message', 'Your query could not be submitted. Please fill up all the required fields and try again.' );
+					update_option( 'mo_oauth_server_message', 'Your query could not be submitted. Please fill up all the required fields and try again.' );
 					$this->utils->mo_oauth_show_error_message();
 				}
 			}

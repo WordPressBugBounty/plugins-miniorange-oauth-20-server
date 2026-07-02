@@ -12,6 +12,8 @@
  * @license      https://plugins.miniorange.com/mit-license MIT/Expat
  */
 
+if ( ! defined( 'ABSPATH' ) ) exit;
+
 require_once MINIORANGE_OAUTH_20_SERVER_PLUGIN_DIR_PATH . DIRECTORY_SEPARATOR . 'admin' . DIRECTORY_SEPARATOR . 'helper' . DIRECTORY_SEPARATOR . 'constants' . DIRECTORY_SEPARATOR . 'class-miniorange-oauth-20-server-oauth-constants.php';
 
 /**

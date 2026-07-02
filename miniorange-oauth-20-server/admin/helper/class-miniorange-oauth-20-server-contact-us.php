@@ -65,7 +65,7 @@ class Miniorange_Oauth_20_Server_Contact_Us {
 					'message' => 'Please provide a valid email and support request text to submit your query.',
 				);
 			}
-			update_option( 'message', 'Please fill up Email and Query fields to submit your query.', false );
+			update_option( 'mo_oauth_server_message', 'Please fill up Email and Query fields to submit your query.', false );
 			$this->utils->mo_oauth_show_error_message();
 			return;
 		}
@@ -78,7 +78,7 @@ class Miniorange_Oauth_20_Server_Contact_Us {
 					'message' => 'Your query could not be submitted. Please try again.',
 				);
 			}
-			update_option( 'message', 'Your query could not be submitted. Please try again.', false );
+			update_option( 'mo_oauth_server_message', 'Your query could not be submitted. Please try again.', false );
 			$this->utils->mo_oauth_show_error_message();
 			return;
 		}
@@ -90,7 +90,7 @@ class Miniorange_Oauth_20_Server_Contact_Us {
 			);
 		}
 
-		update_option( 'message', 'Thanks for getting in touch! We shall get back to you shortly.', false );
+		update_option( 'mo_oauth_server_message', 'Thanks for getting in touch! We shall get back to you shortly.', false );
 		$this->utils->mo_oauth_show_success_message();
 	}
 }

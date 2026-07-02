@@ -19,6 +19,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+// Abilities API calls (wp_get_abilities()/wp_get_ability()) require WP 6.9+; every call site below is guarded by a function_exists() check, so this file stays compatible with the plugin's "Requires at least: 4.8" header.
+
 /**
  * Class Miniorange_Oauth_20_Server_MCP
  */
@@ -90,49 +92,272 @@ class Miniorange_Oauth_20_Server_MCP {
 			)
 		);
 
+
+		// Issuer-relative aliases. The advertised issuer is .../moserver, so RFC 8414
+		// clients may probe .../moserver/.well-known/* (without the /mcp prefix).
+		// Serving both forms makes discovery work regardless of the client version.
+		register_rest_route(
+			self::REST_NS,
+			'/.well-known/oauth-authorization-server',
+			array(
+				'methods'             => 'GET',
+				'callback'            => array( __CLASS__, 'handle_as_metadata' ),
+				'permission_callback' => '__return_true',
+			)
+		);
+		register_rest_route(
+			self::REST_NS,
+			'/.well-known/oauth-protected-resource',
+			array(
+				'methods'             => 'GET',
+				'callback'            => array( __CLASS__, 'handle_resource_metadata' ),
+				'permission_callback' => '__return_true',
+			)
+		);
+
+		// RFC 7591 — OAuth 2.0 Dynamic Client Registration.
+		// Claude.ai (unlike ChatGPT) has no field to enter a pre-registered client_id/secret;
+		// it self-registers by POSTing here. Without this route Claude cannot connect.
+		register_rest_route(
+			self::REST_NS,
+			'/mcp/register',
+			array(
+				'methods'             => 'POST',
+				'callback'            => array( __CLASS__, 'handle_register' ),
+				'permission_callback' => '__return_true',
+			)
+		);
+
 		// Add WWW-Authenticate to 401 responses so clients find the metadata URL.
 		add_filter( 'rest_post_dispatch', array( __CLASS__, 'add_www_authenticate_header' ), 10, 3 );
 	}
 
 	/**
-	 * RFC 8414 Authorization Server Metadata.
+	 * Build the RFC 8414 Authorization Server Metadata payload.
+	 *
+	 * @param string $issuer Issuer URL to advertise. Defaults to the REST base.
+	 * @return array
+	 */
+	private static function get_as_metadata_array( $issuer = '' ) {
+		$base   = rtrim( rest_url( self::REST_NS ), '/' );
+		$issuer = '' !== $issuer ? rtrim( $issuer, '/' ) : $base;
+		return array(
+			'issuer'                                => $issuer,
+			'authorization_endpoint'               => $base . '/authorize',
+			'token_endpoint'                        => $base . '/token',
+			'registration_endpoint'                => $base . '/mcp/register',
+			'response_types_supported'             => array( 'code' ),
+			'grant_types_supported'                => array( 'authorization_code', 'refresh_token' ),
+			'token_endpoint_auth_methods_supported' => array( 'client_secret_post', 'client_secret_basic' ),
+			'code_challenge_methods_supported'     => array( 'S256' ),
+			'scopes_supported'                     => array( 'openid', 'email', 'profile' ),
+		);
+	}
+
+	/**
+	 * Build the RFC 9728 Protected Resource Metadata payload.
+	 *
+	 * @param string $issuer Authorization server issuer URL to advertise.
+	 *                       Defaults to the REST base. See get_as_metadata_array().
+	 * @return array
+	 */
+	private static function get_resource_metadata_array( $issuer = '' ) {
+		$base   = rtrim( rest_url( self::REST_NS ), '/' );
+		$issuer = '' !== $issuer ? rtrim( $issuer, '/' ) : $base;
+		return array(
+			'resource'                 => $base . '/mcp',
+			'authorization_servers'    => array( $issuer ),
+			'bearer_methods_supported' => array( 'header' ),
+			'scopes_supported'         => array( 'openid', 'email', 'profile' ),
+		);
+	}
+
+	/**
+	 * RFC 8414 Authorization Server Metadata (REST route).
 	 *
 	 * @return WP_REST_Response
 	 */
 	public static function handle_as_metadata() {
 		MO_OAuth_Server_Debug::error_log( 'MCP OAuth discovery - serving AS metadata (RFC 8414).' );
-		$base = rtrim( rest_url( self::REST_NS ), '/' );
-		return new WP_REST_Response(
-			array(
-				'issuer'                                => $base,
-				'authorization_endpoint'               => $base . '/authorize',
-				'token_endpoint'                        => $base . '/token',
-				'response_types_supported'             => array( 'code' ),
-				'grant_types_supported'                => array( 'authorization_code' ),
-				'token_endpoint_auth_methods_supported' => array( 'client_secret_post', 'client_secret_basic' ),
-				'scopes_supported'                     => array( 'openid', 'email', 'profile' ),
-			),
-			200
-		);
+		return new WP_REST_Response( self::get_as_metadata_array(), 200 );
 	}
 
 	/**
-	 * RFC 9728 Protected Resource Metadata.
+	 * RFC 9728 Protected Resource Metadata (REST route).
 	 * Points clients to the authorization server for OAuth discovery.
 	 *
 	 * @return WP_REST_Response
 	 */
 	public static function handle_resource_metadata() {
 		MO_OAuth_Server_Debug::error_log( 'MCP OAuth discovery - serving resource metadata (RFC 9728).' );
-		$base = rtrim( rest_url( self::REST_NS ), '/' );
+		return new WP_REST_Response( self::get_resource_metadata_array(), 200 );
+	}
+
+	/**
+	 * Serve OAuth discovery metadata from the SITE ROOT.
+	 *
+	 * @return void
+	 */
+	public static function maybe_serve_root_well_known() {
+		if ( ! isset( $_SERVER['REQUEST_URI'] ) ) {
+			return;
+		}
+
+		$path = wp_parse_url( wp_unslash( $_SERVER['REQUEST_URI'] ), PHP_URL_PATH ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput
+		if ( ! is_string( $path ) || '' === $path ) {
+			return;
+		}
+
+		$home_path = wp_parse_url( home_url(), PHP_URL_PATH );
+		$home_path = is_string( $home_path ) ? rtrim( $home_path, '/' ) : '';
+		if ( '' !== $home_path && 0 === strpos( $path, $home_path ) ) {
+			$path = substr( $path, strlen( $home_path ) );
+		}
+
+		// Only intercept the OAuth discovery probes; leave every other path alone.
+		if ( 0 === strpos( $path, '/.well-known/oauth-authorization-server' ) ) {
+			MO_OAuth_Server_Debug::error_log( 'MCP OAuth discovery - serving root-level AS metadata for ' . $path );
+			self::send_json_and_exit( self::get_as_metadata_array( home_url() ) );
+		}
+
+		if ( 0 === strpos( $path, '/.well-known/oauth-protected-resource' ) ) {
+			MO_OAuth_Server_Debug::error_log( 'MCP OAuth discovery - serving root-level resource metadata for ' . $path );
+			self::send_json_and_exit( self::get_resource_metadata_array( home_url() ) );
+		}
+	}
+
+	/**
+	 * Emit a JSON payload and terminate the request.
+	 *
+	 *
+	 * @param array $data Response data.
+	 * @return void
+	 */
+	private static function send_json_and_exit( array $data ) {
+		if ( ! headers_sent() ) {
+			header( 'Access-Control-Allow-Origin: *' );
+			header( 'Cache-Control: no-store' );
+		}
+		wp_send_json( $data, 200 );
+	}
+
+	/**
+	 * RFC 7591 Dynamic Client Registration.
+	 *
+	 * @param WP_REST_Request $request Incoming registration request.
+	 * @return WP_REST_Response
+	 */
+	public static function handle_register( WP_REST_Request $request ) {
+		MO_OAuth_Server_Debug::error_log( 'MCP Dynamic Client Registration - request received.' );
+
+		if ( 'on' !== get_option( 'mo_oauth_server_mcp_enabled', 'off' ) ) {
+			MO_OAuth_Server_Debug::error_log( 'MCP DCR - rejected: MCP is disabled.' );
+			return new WP_REST_Response(
+				array(
+					'error'             => 'access_denied',
+					'error_description' => 'MCP functionality is not enabled on this server.',
+				),
+				403
+			);
+		}
+
+		$metadata = $request->get_json_params();
+		if ( ! is_array( $metadata ) ) {
+			$metadata = array();
+		}
+
+		$redirect_uris = array();
+		if ( isset( $metadata['redirect_uris'] ) && is_array( $metadata['redirect_uris'] ) ) {
+			foreach ( $metadata['redirect_uris'] as $uri ) {
+				$uri = esc_url_raw( trim( (string) $uri ) );
+				if ( '' !== $uri ) {
+					$redirect_uris[] = $uri;
+				}
+			}
+		}
+
+		if ( empty( $redirect_uris ) ) {
+			MO_OAuth_Server_Debug::error_log( 'MCP DCR - rejected: no valid redirect_uris supplied.' );
+			return new WP_REST_Response(
+				array(
+					'error'             => 'invalid_redirect_uri',
+					'error_description' => 'At least one redirect_uri is required.',
+				),
+				400
+			);
+		}
+
+		require_once MINIORANGE_OAUTH_20_SERVER_PLUGIN_DIR_PATH . 'admin/helper/class-miniorange-oauth-20-server-utils.php';
+		$mo_utils = new \Miniorange_Oauth_20_Server_Utils();
+
+		$client_id     = 'mcp_' . $mo_utils->moos_generate_random_string( 32 );
+		$client_secret = $mo_utils->moos_generate_random_string( 48 );
+
+		// Derive a unique, human-readable name; the encrypt/decrypt routine keys on it.
+		$requested_name = isset( $metadata['client_name'] ) && is_string( $metadata['client_name'] ) && '' !== trim( $metadata['client_name'] )
+			? sanitize_text_field( $metadata['client_name'] )
+			: 'MCP Client';
+		$client_name = $requested_name . ' - ' . $client_id;
+
+		if ( ! get_option( 'mo_oauth_server_is_client_secret_encrypted' ) ) {
+			update_option( 'mo_oauth_server_is_client_secret_encrypted', 1, false );
+		}
+		$encrypted_secret = $mo_utils->mo_oauth_server_encrypt( $client_secret, $client_name );
+		$redirect_uri_str = implode( ' ', $redirect_uris );
+
+		require_once MINIORANGE_OAUTH_20_SERVER_PLUGIN_DIR_PATH . 'admin/helper/class-miniorange-oauth-20-server-db.php';
+		$mo_db = new Mo_Oauth_Server_Db();
+
+		$existing_clients = $mo_db->get_clients();
+		if ( ! empty( $existing_clients ) ) {
+			MO_OAuth_Server_Debug::error_log( 'MCP DCR - rejected: client limit reached (existing client present).' );
+			return new WP_REST_Response(
+				array(
+					'error'             => 'invalid_client_metadata',
+					'error_description' => 'You already have a configured application. Please delete the existing OAuth client from the server settings before registering a new one.',
+				),
+				400
+			);
+		}
+
+		$inserted = $mo_db->add_client(
+			$client_name,
+			$encrypted_secret,
+			$redirect_uri_str,
+			get_current_blog_id(),
+			'HS256',
+			$client_secret,
+			'',
+			$client_id
+		);
+
+		if ( false === $inserted ) {
+			MO_OAuth_Server_Debug::error_log( 'MCP DCR - failed: could not persist client or signing key.' );
+			return new WP_REST_Response(
+				array(
+					'error'             => 'server_error',
+					'error_description' => 'Could not register the client.',
+				),
+				500
+			);
+		}
+
+		MO_OAuth_Server_Debug::error_log( 'MCP DCR - registered client_id: ' . $client_id . ' (name: ' . $client_name . ')' );
+
 		return new WP_REST_Response(
 			array(
-				'resource'                 => $base . '/mcp',
-				'authorization_servers'    => array( $base ),
-				'bearer_methods_supported' => array( 'header' ),
-				'scopes_supported'         => array( 'openid', 'email', 'profile' ),
+				'client_id'                  => $client_id,
+				'client_secret'              => $client_secret,
+				'client_id_issued_at'        => time(),
+				'client_secret_expires_at'   => 0, // 0 = never expires.
+				'redirect_uris'              => $redirect_uris,
+				'grant_types'                => array( 'authorization_code', 'refresh_token' ),
+				'response_types'             => array( 'code' ),
+				'token_endpoint_auth_method' => 'client_secret_post',
+				'client_name'                => $client_name,
+				'scope'                      => 'openid email profile',
 			),
-			200
+			201
 		);
 	}
 

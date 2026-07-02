@@ -70,7 +70,7 @@ class Miniorange_Oauth_20_Server_Save_Settings {
 				$client_name = sanitize_text_field( wp_unslash( $_POST['client_name'] ) );
 			} else {
 				// handle error, client_name not provided.
-				update_option( 'message', 'Client name is empty, please provide a client name.', false );
+				update_option( 'mo_oauth_server_message', 'Client name is empty, please provide a client name.', false );
 				$this->utils->mo_oauth_show_error_message();
 				return;
 			}
@@ -83,7 +83,9 @@ class Miniorange_Oauth_20_Server_Save_Settings {
 			}
 
 			$add_client = new Miniorange_Oauth_20_Server_Add_Client();
-			$add_client->handle_add_client( $client_name, $redirect_uri );
+			if ( ! $add_client->handle_add_client( $client_name, $redirect_uri ) ) {
+				return;
+			}
 		}
 
 		// Delete and Update client app.
@@ -97,7 +99,7 @@ class Miniorange_Oauth_20_Server_Save_Settings {
 				$client_name = sanitize_text_field( wp_unslash( $_POST['client_name'] ) );
 			} else {
 				// handle error, client_name not provided.
-				update_option( 'message', 'Client name is empty, please provide a client name.', false );
+				update_option( 'mo_oauth_server_message', 'Client name is empty, please provide a client name.', false );
 				$this->utils->mo_oauth_show_error_message();
 			}
 
@@ -112,7 +114,7 @@ class Miniorange_Oauth_20_Server_Save_Settings {
 				$clientid = sanitize_text_field( wp_unslash( $_POST['client_id'] ) );
 			} else {
 				// handle error, client_id not provided.
-				update_option( 'message', 'Error occured (WP OAuth server): Client id is empty', false );
+				update_option( 'mo_oauth_server_message', 'Error occured (WP OAuth server): Client id is empty', false );
 				$this->utils->mo_oauth_show_error_message();
 			}
 
@@ -143,7 +145,7 @@ class Miniorange_Oauth_20_Server_Save_Settings {
 			$value = isset( $_POST['mo_oauth_server_master_switch'] ) ? 'on' : 'off';
 			update_option( 'mo_oauth_server_master_switch', $value, false );
 			$message = ( $value === 'on' ) ? 'Master Switch enabled successfully.' : 'Master Switch disabled successfully.';
-			update_option( 'message', $message, false );
+			update_option( 'mo_oauth_server_message', $message, false );
 			$this->utils->mo_oauth_show_success_message();
 		}
 
@@ -158,7 +160,7 @@ class Miniorange_Oauth_20_Server_Save_Settings {
 			}
 
 			$result = Miniorange_Oauth_20_Server_Handle_Custom_Login_Url_Ability::handle_custom_login_url_ability( $custom_url );
-			update_option( 'message', $result['message'], false );
+			update_option( 'mo_oauth_server_message', $result['message'], false );
 			if ( ! empty( $result['success'] ) ) {
 				$this->utils->mo_oauth_show_success_message();
 			} else {
@@ -175,7 +177,7 @@ class Miniorange_Oauth_20_Server_Save_Settings {
 			$value = isset( $_POST['mo_oauth_server_openid_connect'] ) ? 'on' : 'off';
 			update_option( 'mo_oauth_server_enable_oidc', $value, false );
 			$message = ( $value === 'on' ) ? 'OpenID Connect enabled successfully.' : 'OpenID Connect disabled successfully.';
-			update_option( 'message', $message, false );
+			update_option( 'mo_oauth_server_message', $message, false );
 			$this->utils->mo_oauth_show_success_message();
 		}
 
@@ -187,7 +189,7 @@ class Miniorange_Oauth_20_Server_Save_Settings {
 			$value = isset( $_POST['mo_oauth_server_state_parameter'] ) ? 'on' : 'off';
 			update_option( 'mo_oauth_server_enforce_state', $value, false );
 			$message = ( $value === 'on' ) ? 'State Parameter enabled successfully.' : 'State Parameter disabled successfully.';
-			update_option( 'message', $message, false );
+			update_option( 'mo_oauth_server_message', $message, false );
 			$this->utils->mo_oauth_show_success_message();
 		}
 
@@ -206,7 +208,7 @@ class Miniorange_Oauth_20_Server_Save_Settings {
 			$value   = isset( $_POST['mo_oauth_server_mcp_enabled'] ) ? 'on' : 'off';
 			update_option( 'mo_oauth_server_mcp_enabled', $value, false );
 			$message = ( 'on' === $value ) ? 'MCP endpoint enabled successfully.' : 'MCP endpoint disabled successfully.';
-			update_option( 'message', $message, false );
+			update_option( 'mo_oauth_server_message', $message, false );
 			$this->utils->mo_oauth_show_success_message();
 		}
 
@@ -222,7 +224,7 @@ class Miniorange_Oauth_20_Server_Save_Settings {
 				: 'both';
 			$auth_method     = in_array( $raw_method, $allowed_methods, true ) ? $raw_method : 'both';
 			update_option( 'mo_oauth_server_mcp_auth_method', $auth_method, false );
-			update_option( 'message', 'MCP authorization method saved successfully.', false );
+			update_option( 'mo_oauth_server_message', 'MCP authorization method saved successfully.', false );
 			$this->utils->mo_oauth_show_success_message();
 		}
 
@@ -236,7 +238,7 @@ class Miniorange_Oauth_20_Server_Save_Settings {
 				? array_map( 'sanitize_text_field', wp_unslash( $_POST['mo_oauth_server_mcp_allowed_abilities'] ) )
 				: array();
 			update_option( 'mo_oauth_server_mcp_allowed_abilities', $raw_abilities, false );
-			update_option( 'message', 'MCP allowed abilities saved successfully.', false );
+			update_option( 'mo_oauth_server_message', 'MCP allowed abilities saved successfully.', false );
 			$this->utils->mo_oauth_show_success_message();
 		}
 
@@ -414,7 +416,7 @@ class Miniorange_Oauth_20_Server_Save_Settings {
 				require_once MINIORANGE_OAUTH_20_SERVER_PLUGIN_DIR_PATH . 'admin/helper/class-miniorange-oauth-20-server-enable-debug-logs.php';
 				$debug_enable_result = Miniorange_Oauth_20_Server_Enable_Debug_Logs::mo_oauth_server_try_enable_debug_logs();
 				if ( ! $debug_enable_result['success'] ) {
-					update_option( 'message', $debug_enable_result['message'], false );
+					update_option( 'mo_oauth_server_message', $debug_enable_result['message'], false );
 					$this->utils->mo_oauth_show_error_message();
 					return;
 				}
@@ -442,7 +444,7 @@ class Miniorange_Oauth_20_Server_Save_Settings {
 		// Form handler for feedback form.
 		if ( isset( $_POST['option'] ) && 'mo_oauth_server_skip_feedback' === sanitize_text_field( wp_unslash( $_POST['option'] ) ) && isset( $_REQUEST['mo_oauth_server_skip_feedback_form_field'] ) && wp_verify_nonce( sanitize_text_field( wp_unslash( $_REQUEST['mo_oauth_server_skip_feedback_form_field'] ) ), 'mo_oauth_server_skip_feedback_form' ) ) {
 			deactivate_plugins( MINIORANGE_OAUTH_20_SERVER_PLUGIN_DIR_PATH . 'mo_oauth_settings.php' );
-			update_option( 'message', 'Plugin deactivated successfully', false );
+			update_option( 'mo_oauth_server_message', 'Plugin deactivated successfully', false );
 			$this->utils->mo_oauth_show_success_message();
 		} elseif ( isset( $_POST['mo_oauth_server_feedback'] ) && 'true' === sanitize_text_field( wp_unslash( $_POST['mo_oauth_server_feedback'] ) ) && isset( $_REQUEST['mo_oauth_server_feedback_form_field'] ) && wp_verify_nonce( sanitize_text_field( wp_unslash( $_REQUEST['mo_oauth_server_feedback_form_field'] ) ), 'mo_oauth_server_feedback_form' ) ) {
 			$message                   = 'Plugin Deactivated: ';
@@ -471,17 +473,17 @@ class Miniorange_Oauth_20_Server_Save_Settings {
 			$feedback_reasons = new Mo_Oauth_Server_Customer();
 			$submited         = json_decode( $feedback_reasons->mo_oauth_send_email_alert( $feed_email, $phone, $message, $rating ), true );
 			deactivate_plugins( MINIORANGE_OAUTH_20_SERVER_PLUGIN_DIR_PATH . 'mo_oauth_settings.php' );
-			update_option( 'message', 'Thank you for the feedback.' );
+			update_option( 'mo_oauth_server_message', 'Thank you for the feedback.' );
 			$this->utils->mo_oauth_show_success_message();
 		}
 
 		if ( isset( $_POST['mo_oauth_server_rotate_rsa_keys'] ) && isset( $_POST['mo_oauth_server_rotate_rsa_keys_nonce'] ) && wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['mo_oauth_server_rotate_rsa_keys_nonce'] ) ), 'mo_oauth_server_rotate_rsa_keys' ) ) {
 			require_once MINIORANGE_OAUTH_20_SERVER_PLUGIN_DIR_PATH . 'admin/helper/class-miniorange-oauth-20-server-key-manager.php';
 			if ( Mo_Oauth_Server_Key_Manager::rotate_rs256_clients() ) {
-				update_option( 'message', 'RSA keys rotated successfully. Update your connected application with the new public key from the JWKS endpoint.', false );
+				update_option( 'mo_oauth_server_message', 'RSA keys rotated successfully. Update your connected application with the new public key from the JWKS endpoint.', false );
 				$this->utils->mo_oauth_show_success_message();
 			} else {
-				update_option( 'message', 'RSA key rotation failed: Something went wrong while generating the RSA key.', false );
+				update_option( 'mo_oauth_server_message', 'RSA key rotation failed: Something went wrong while generating the RSA key.', false );
 				$this->utils->mo_oauth_show_error_message();
 			}
 		}

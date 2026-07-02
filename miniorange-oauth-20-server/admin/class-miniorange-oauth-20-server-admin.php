@@ -70,7 +70,6 @@ class Miniorange_Oauth_20_Server_Admin {
 
 			wp_enqueue_style( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'css/miniorange-oauth-20-server-admin.css', array(), filemtime( plugin_dir_path( __FILE__ ) . 'css/miniorange-oauth-20-server-admin.css' ), 'all' );
 		}
-		wp_enqueue_style( 'mo_oauth_server_admin_security_notice', plugin_dir_url( __FILE__ ) . 'css/security_notice.min.css', array(), $this->version, $in_footer = false );
 	}
 
 	/**
@@ -292,7 +291,7 @@ class Miniorange_Oauth_20_Server_Admin {
 		$mo_oauth_server_db       = new Mo_Oauth_Server_Db();
 		$clientlist               = $mo_oauth_server_db->get_clients();
 		$no_of_configured_clients = count( $clientlist );
-		if ( 1 === $no_of_configured_clients ) {
+		if ( $no_of_configured_clients >= 1 ) {
 			require_once MINIORANGE_OAUTH_20_SERVER_PLUGIN_DIR_PATH . 'admin/helper/class-miniorange-oauth-20-server-utils.php';
 			$mo_utils                  = new Miniorange_Oauth_20_Server_Utils();
 			$home_url_plus_rest_prefix = $mo_utils->get_home_url_with_permalink_structure();

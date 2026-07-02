@@ -191,7 +191,10 @@ class Miniorange_Oauth_20_Server {
 
 		$this->loader->add_filter( 'init', $plugin_public, 'mo_oauth_server_authorize' );
 		$this->loader->add_action( 'rest_api_init', $plugin_public, 'mo_oauth_server_register_endpoints' );
-		$this->loader->add_action( 'rest_api_init', 'Miniorange_Oauth_20_Server_MCP', 'register_routes' );
+		if ( 'on' === get_option( 'mo_oauth_server_mcp_enabled', 'off' ) ) {
+			$this->loader->add_action( 'rest_api_init', 'Miniorange_Oauth_20_Server_MCP', 'register_routes' );
+			$this->loader->add_action( 'init', 'Miniorange_Oauth_20_Server_MCP', 'maybe_serve_root_well_known', 1 );
+		}
 
 
 		// Load and hook only when the toggle is on; save_if_posted loads the file when turning off in admin.

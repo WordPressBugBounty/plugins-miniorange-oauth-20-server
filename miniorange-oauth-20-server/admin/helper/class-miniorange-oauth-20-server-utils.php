@@ -158,8 +158,8 @@ class Miniorange_Oauth_20_Server_Utils {
 	 * @return void
 	 */
 	public function mo_oauth_show_error_message() {
-		remove_action( 'admin_notices', array( $this, 'mo_oauth_error_message' ) );
-		add_action( 'admin_notices', array( $this, 'mo_oauth_success_message' ) );
+		remove_action( 'admin_notices', array( $this, 'mo_oauth_success_message' ) );
+		add_action( 'admin_notices', array( $this, 'mo_oauth_error_message' ) );
 	}
 
 	/**
@@ -170,8 +170,8 @@ class Miniorange_Oauth_20_Server_Utils {
 	 * @return void
 	 */
 	public function mo_oauth_show_success_message() {
-		remove_action( 'admin_notices', array( $this, 'mo_oauth_success_message' ) );
-		add_action( 'admin_notices', array( $this, 'mo_oauth_error_message' ) );
+		remove_action( 'admin_notices', array( $this, 'mo_oauth_error_message' ) );
+		add_action( 'admin_notices', array( $this, 'mo_oauth_success_message' ) );
 	}
 
 	/**
@@ -182,8 +182,12 @@ class Miniorange_Oauth_20_Server_Utils {
 	 * @return void
 	 */
 	public function mo_oauth_error_message() {
-		$class   = 'updated ml-0 mr-5';
-		$message = esc_html( get_option( 'message' ) );
+		$class   = 'error ml-0 mr-5';
+		$message = get_option( 'mo_oauth_server_message', '' );
+		if ( '' === $message ) {
+			$message = get_option( 'message', '' );
+		}
+		$message = esc_html( $message );
 
 		printf( '<div class="%1$s"><p>%2$s</p></div>', esc_attr( $class ), esc_html( $message ) );
 	}
@@ -196,8 +200,12 @@ class Miniorange_Oauth_20_Server_Utils {
 	 * @return void
 	 */
 	public function mo_oauth_success_message() {
-		$class   = 'error ml-0 mr-5';
-		$message = esc_html( get_option( 'message' ) );
+		$class   = 'updated ml-0 mr-5';
+		$message = get_option( 'mo_oauth_server_message', '' );
+		if ( '' === $message ) {
+			$message = get_option( 'message', '' );
+		}
+		$message = esc_html( $message );
 
 		printf( '<div class="%1$s"><p>%2$s</p></div>', esc_attr( $class ), esc_html( $message ) );
 	}
@@ -226,7 +234,7 @@ class Miniorange_Oauth_20_Server_Utils {
 	 */
 	public function mo_oauth_show_curl_error() {
 		if ( $this->mo_oauth_server_is_curl_installed() === 0 ) {
-			update_option( 'message', '<a href="http://php.net/manual/en/curl.installation.php" target="_blank">PHP CURL extension</a> is not installed or disabled. Please enable it to continue.', false );
+			update_option( 'mo_oauth_server_message', '<a href="http://php.net/manual/en/curl.installation.php" target="_blank">PHP CURL extension</a> is not installed or disabled. Please enable it to continue.', false );
 			$this->mo_oauth_show_error_message();
 			return;
 		}

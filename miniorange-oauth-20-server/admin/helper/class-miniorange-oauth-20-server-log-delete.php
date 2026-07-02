@@ -37,7 +37,7 @@ class Miniorange_Oauth_20_Server_Log_Delete {
 		$this->mo_oauth_delete_debug_log_file();
 
 		// show success message.
-		update_option( 'message', 'Previous log cleared successfully', false );
+		update_option( 'mo_oauth_server_message', 'Previous log cleared successfully', false );
 		$this->utils->mo_oauth_show_success_message();
 	}
 

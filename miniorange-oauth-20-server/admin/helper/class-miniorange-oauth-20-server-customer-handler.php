@@ -51,11 +51,11 @@ class Miniorange_Oauth_20_Server_Customer_Handler {
 		$lname            = '';
 		$company          = '';
 		if ( ! isset( $_POST['email'] ) || ! isset( $_POST['password'] ) || ! isset( $_POST['confirm_password'] ) ) {
-			update_option( 'message', 'All the fields are required. Please enter valid entries.', false );
+			update_option( 'mo_oauth_server_message', 'All the fields are required. Please enter valid entries.', false );
 			$this->utils->mo_oauth_show_error_message();
 			return;
 			} elseif ( strlen( $_POST['password'] ) < 8 || strlen( $_POST['confirm_password'] ) < 8 ) { //phpcs:ignore -- Not sanitizing and unslashing password and confirm password
-			update_option( 'message', 'Choose a password with minimum length 8.', false );
+			update_option( 'mo_oauth_server_message', 'Choose a password with minimum length 8.', false );
 			$this->utils->mo_oauth_show_error_message();
 			return;
 		} else {
@@ -93,25 +93,25 @@ class Miniorange_Oauth_20_Server_Customer_Handler {
 						update_option( 'mo_oauth_server_admin_api_key', $customer_key['apiKey'], false );
 						update_option( 'mo_oauth_server_customer_token', $customer_key['token'], false );
 						update_option( 'mo_oauth_server_admin_phone', $customer_key['phone'], false );
-						update_option( 'message', 'Customer created & retrieved successfully', false );
+						update_option( 'mo_oauth_server_message', 'Customer created & retrieved successfully', false );
 						delete_option( 'mo_oauth_server_verify_customer' );
 						$this->utils->mo_oauth_show_success_message();
 					}
 					wp_safe_redirect( admin_url( '/admin.php?page=mo_oauth_server_settings&tab=account_setup' ), 301 );
 					exit;
 				} else {
-					update_option( 'message', 'Failed to create customer. Try again.', false );
+					update_option( 'mo_oauth_server_message', 'Failed to create customer. Try again.', false );
 				}
 				$this->utils->mo_oauth_show_success_message();
 			} elseif ( strcasecmp( $content['status'], 'SUCCESS' ) === 0 ) {
-				update_option( 'message', 'Account already exist. Please Login.', false );
+				update_option( 'mo_oauth_server_message', 'Account already exist. Please Login.', false );
 			} else {
-				update_option( 'message', $content['status'], false );
+				update_option( 'mo_oauth_server_message', $content['status'], false );
 			}
 			$this->utils->mo_oauth_show_success_message();
 
 		} else {
-			update_option( 'message', 'Passwords do not match.', false );
+			update_option( 'mo_oauth_server_message', 'Passwords do not match.', false );
 			delete_option( 'mo_oauth_server_verify_customer' );
 			$this->utils->mo_oauth_show_error_message();
 		}
@@ -130,7 +130,7 @@ class Miniorange_Oauth_20_Server_Customer_Handler {
 
 		// validation and sanitization.
 		if ( $this->utils->mo_oauth_check_empty_or_null( $email ) || $this->utils->mo_oauth_check_empty_or_null( $password ) ) {
-			update_option( 'message', 'All the fields are required. Please enter valid entries.', false );
+			update_option( 'mo_oauth_server_message', 'All the fields are required. Please enter valid entries.', false );
 			$this->utils->mo_oauth_show_error_message();
 			return;
 		}
@@ -145,12 +145,12 @@ class Miniorange_Oauth_20_Server_Customer_Handler {
 			update_option( 'mo_oauth_server_admin_api_key', $customer_key['apiKey'], false );
 			update_option( 'mo_oauth_server_customer_token', $customer_key['token'], false );
 			update_option( 'mo_oauth_server_admin_phone', $customer_key['phone'], false );
-			update_option( 'message', 'Customer retrieved successfully', false );
+			update_option( 'mo_oauth_server_message', 'Customer retrieved successfully', false );
 			update_option( 'mo_oauth_server_admin_phone', $customer_key['phone'], false );
 			delete_option( 'mo_oauth_server_verify_customer' );
 			$this->utils->mo_oauth_show_success_message();
 		} else {
-			update_option( 'message', 'Invalid username or password. Please try again.', false );
+			update_option( 'mo_oauth_server_message', 'Invalid username or password. Please try again.', false );
 			$this->utils->mo_oauth_show_error_message();
 		}
 	}

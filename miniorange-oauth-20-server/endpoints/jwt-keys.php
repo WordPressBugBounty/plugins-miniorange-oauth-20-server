@@ -60,12 +60,5 @@ function mo_oauth_server_jwt_keys( $data ) {
 		array( 'keys' => array( $values ) ),
 		JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT
 	);
-	$jwks_uri_hit_count = get_option( 'mo_oauth_server_jwks_uri_hit_count' );
-	if ( false === $jwks_uri_hit_count ) {
-		$jwks_uri_hit_count = 1;
-	} else {
-		$jwks_uri_hit_count++;
-	}
-	update_option( 'mo_oauth_server_jwks_uri_hit_count', $jwks_uri_hit_count, false );
 	exit();
 }

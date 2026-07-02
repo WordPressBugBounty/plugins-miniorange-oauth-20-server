@@ -37,6 +37,7 @@ delete_option( 'mo_oauth_server_admin_customer_key' );
 delete_option( 'mo_oauth_server_admin_api_key' );
 delete_option( 'mo_oauth_server_customer_token' );
 delete_option( 'mo_oauth_server_new_customer' );
+delete_option( 'mo_oauth_server_message' );
 delete_option( 'message' );
 delete_option( 'mo_oauth_server_new_registration' );
 delete_option( 'mo_oauth_server_registration_status' );

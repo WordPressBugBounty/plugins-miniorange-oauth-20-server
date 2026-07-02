@@ -9,6 +9,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+// wp_get_wp_version() requires WP 6.7+; the call below is guarded by a function_exists() check with a get_bloginfo( 'version' ) fallback, so this file stays compatible with the plugin's "Requires at least: 4.8" header.
+
 /**
  * Class Miniorange_Oauth_20_Server_Abilities_Api_Settings
  */
@@ -114,7 +116,7 @@ class Miniorange_Oauth_20_Server_Abilities_Api_Settings {
 			update_option( self::OPTION_NAME, 'off', false );
 			$prerequisite_notice = self::get_prerequisite_notice();
 			update_option(
-				'message',
+				'mo_oauth_server_message',
 				$prerequisite_notice ? $prerequisite_notice : __( 'Abilities API prerequisites are not met.', 'miniorange-oauth-20-server' ),
 				false
 			);
@@ -125,7 +127,7 @@ class Miniorange_Oauth_20_Server_Abilities_Api_Settings {
 		$value = null !== $utils->mo_oauth_get_sanitized_post_value( 'mo_oauth_server_abilities_api' ) ? 'on' : 'off';
 
 		update_option( self::OPTION_NAME, $value, false );
-		update_option( 'message', ( 'on' === $value ) ? 'Abilities API enabled successfully.' : 'Abilities API disabled successfully.', false );
+		update_option( 'mo_oauth_server_message', ( 'on' === $value ) ? 'Abilities API enabled successfully.' : 'Abilities API disabled successfully.', false );
 		$utils->mo_oauth_show_success_message();
 
 		// wp_abilities_api_init already ran earlier on init; sync registry when toggling off in this request.
