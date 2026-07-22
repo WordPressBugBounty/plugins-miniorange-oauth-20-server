@@ -4,7 +4,7 @@ Tags: WordPress Login, OAuth Provider, OAuth Server, OAuth2, OpenID
 Requires at least: 4.8
 Tested up to: 7.0
 Requires PHP: 5.6
-Stable tag: 6.2.0
+Stable tag: 6.2.1
 License: Expat
 License URI: https://plugins.miniorange.com/mit-license
 
@@ -160,7 +160,7 @@ Yes, you are eligible for a discount, if you are purchasing more than 1 license.
 Yes, membership/role sync feature is supported in the <a href="https://plugins.miniorange.com/wordpress-oauth-server#oauth_pricing_table" target="_blank">premium plan</a>. You can contact us at <a href="mailto:wpidpsupport@xecurify.com" target="_blank">wpidpsupport@xecurify.com</a> with your requirement.
 
 = How can I disable the consent screen? =
-Yes, you can enable/disable consent screen using the <a href="https://plugins.miniorange.com/wordpress-oauth-server#oauth_pricing_table" target="_blank">premium plan</a>.
+Yes, you can enable/disable consent screen using the <a href="https://plugins.miniorange.com/wordpress-oauth-server#oauth_pricing_table" target="_blank">premium plan</a><a href="https://patchstack.com/database/vdp/f5d0e359-79a2-4895-a744-b12b0ac53b6c" target="_blank">.</a>
 
 == Screenshots ==
 1. Add OAuth Client
@@ -173,6 +173,9 @@ Yes, you can enable/disable consent screen using the <a href="https://plugins.mi
 
 
 == Changelog ==
+
+= 6.2.1 =
+* Fixed an unauthenticated SQL injection vulnerability in the OAuth authorize endpoint's scope validation.
 
 = 6.2.0 =
 * Removed security template of JWT Signing from both email & admin notice.
@@ -465,6 +468,9 @@ Yes, you can enable/disable consent screen using the <a href="https://plugins.mi
 * Initial Release
 
 == Upgrade Notice ==
+
+= 6.2.1 =
+Security fix: patches an unauthenticated SQL injection vulnerability in the OAuth authorize endpoint. Update immediately.
 
 = 6.2.0 =
 * Removed security template of JWT Signing from both email & admin notice.

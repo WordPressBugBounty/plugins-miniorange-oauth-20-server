@@ -510,12 +510,15 @@ class MoPdo implements
 		if ( empty( $scope ) ) {
 			return false;
 		}
-		$scope    = explode( ' ', $scope );
-		$where_in = implode( ',', $scope );
-		$where_in = str_replace( ',', '\',\'', $where_in );
+		$scope = explode( ' ', $scope );
 
 		global $wpdb;
-		$result = $wpdb->get_row( 'SELECT count(scope) as count  FROM ' . $wpdb->base_prefix . "moos_oauth_scopes where scope IN ('" . $where_in . "');", ARRAY_A );
+		$placeholders = implode( ',', array_fill( 0, count( $scope ), '%s' ) );
+		$sql          = $wpdb->prepare(
+			"SELECT count(scope) as count FROM {$wpdb->base_prefix}moos_oauth_scopes WHERE scope IN ($placeholders)",
+			$scope
+		);
+		$result = $wpdb->get_row( $sql, ARRAY_A );
 
 		if ( $result ) {
 			return $result['count'] == count( $scope );
