@@ -47,3 +47,24 @@ delete_option( 'mo_oauth_server_security_warning_remind_date' );
 delete_option( 'mo_oauth_server_is_security_warning_mail_sent' );
 delete_option( 'mo_oauth_server_jwks_uri_hit_count' );
 delete_option( 'mo_oauth_server_site_keys_generated' );
+delete_option( 'mo_oauth_server_is_debug_enabled' );
+delete_option( 'mo_oauth_server_debug_log_filename' );
+
+require_once plugin_dir_path( __FILE__ ) . 'admin/helper/constants/class-miniorange-oauth-20-server-oauth-constants.php';
+
+global $wp_filesystem;
+if ( empty( $wp_filesystem ) ) {
+	require_once ABSPATH . 'wp-admin/includes/file.php';
+	WP_Filesystem();
+}
+
+if ( ! $wp_filesystem ) {
+	return;
+}
+
+$upload_dir = wp_upload_dir();
+$log_dir    = trailingslashit( $upload_dir['basedir'] ) . Miniorange_Oauth_20_Server_Oauth_Constants::ERROR_LOGS_DIR;
+
+if ( $wp_filesystem->is_dir( $log_dir ) ) {
+	$wp_filesystem->rmdir( $log_dir, true );
+}

@@ -53,7 +53,7 @@ class Mo_Oauth_Server_Key_Manager {
 				'public_key'  => $details['key'],
 			);
 		} catch ( \Throwable $e ) {
-			error_log( '[MO OAuth Server] Key pair generation failed: ' . $e->getMessage() );
+			error_log( '[MO OAuth Server] Key pair generation failed: ' . $e->getMessage() ); //phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Logs RSA key generation failure for diagnostics.
 			return false;
 		}
 	}

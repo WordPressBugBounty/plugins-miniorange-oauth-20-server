@@ -216,7 +216,7 @@ class Miniorange_Oauth_20_Server_Admin {
 		// delete debug log file.
 		require_once MINIORANGE_OAUTH_20_SERVER_PLUGIN_DIR_PATH . 'admin/helper/class-miniorange-oauth-20-server-log-delete.php';
 		$log_handler = new Miniorange_Oauth_20_Server_Log_Delete();
-		$log_handler->mo_oauth_delete_debug_log_file();
+		$log_handler->mo_oauth_clear_debug_log_file();
 	}
 
 	/**
@@ -369,6 +369,13 @@ class Miniorange_Oauth_20_Server_Admin {
 		} else {
 			$debug_log_button = '';
 		}
+
+		require_once MINIORANGE_OAUTH_20_SERVER_PLUGIN_DIR_PATH . 'admin/helper/class-mo-oauth-server-log-file.php';
+		$legacy_log_file_exists = MO_OAuth_Server_Log_File::legacy_log_file_exists();
+		$legacy_log_file_name   = 'wp_oauth_server_errors.log';
+
+		MO_OAuth_Server_Log_File::create_log_file_if_missing();
+
 		require_once MINIORANGE_OAUTH_20_SERVER_PLUGIN_DIR_PATH . 'admin/views/miniorange-oauth-20-server-settings-troubleshooting.php';
 	}
 

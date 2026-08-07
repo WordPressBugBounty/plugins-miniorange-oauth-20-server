@@ -4,7 +4,7 @@ Tags: WordPress Login, OAuth Provider, OAuth Server, OAuth2, OpenID
 Requires at least: 4.8
 Tested up to: 7.0
 Requires PHP: 5.6
-Stable tag: 6.2.1
+Stable tag: 6.3.0
 License: Expat
 License URI: https://plugins.miniorange.com/mit-license
 
@@ -173,6 +173,10 @@ Yes, you can enable/disable consent screen using the <a href="https://plugins.mi
 
 
 == Changelog ==
+
+= 6.3.0 =
+* Fixed a security issue where the debug log file used a fixed, guessable name; it is now randomized per site, with cleanup for old log files.
+* UI fixes.
 
 = 6.2.1 =
 * Fixed an unauthenticated SQL injection vulnerability in the OAuth authorize endpoint's scope validation.
@@ -468,6 +472,9 @@ Yes, you can enable/disable consent screen using the <a href="https://plugins.mi
 * Initial Release
 
 == Upgrade Notice ==
+
+= 6.3.0 =
+Security fix: the debug log file used a fixed, guessable name; it is now randomized per site. Update immediately if Debug Logs has ever been enabled.
 
 = 6.2.1 =
 Security fix: patches an unauthenticated SQL injection vulnerability in the OAuth authorize endpoint. Update immediately.

@@ -23,9 +23,8 @@ class MO_OAuth_Server_Debug {
 		if ( ! get_option( 'mo_oauth_server_is_debug_enabled' ) ) {
 			return;
 		}
-		require_once MINIORANGE_OAUTH_20_SERVER_PLUGIN_DIR_PATH . 'admin/helper/constants/class-miniorange-oauth-20-server-oauth-constants.php';
-		$upload_dir = wp_upload_dir();
-		$log_dir    = trailingslashit( $upload_dir['basedir'] ) . Miniorange_Oauth_20_Server_Oauth_Constants::ERROR_LOGS_DIR;
+		require_once MINIORANGE_OAUTH_20_SERVER_PLUGIN_DIR_PATH . 'admin/helper/class-mo-oauth-server-log-file.php';
+		$log_dir = MO_OAuth_Server_Log_File::get_log_dir();
 
 		if ( ! file_exists( $log_dir ) ) {
 			wp_mkdir_p( $log_dir );
@@ -33,9 +32,11 @@ class MO_OAuth_Server_Debug {
 		require_once MINIORANGE_OAUTH_20_SERVER_PLUGIN_DIR_PATH . 'admin/helper/class-mo-oauth-server-file-protection.php';
 		MO_OAuth_Server_File_Protection::mo_oauth_server_create_protection_files( $log_dir );
 
-		$file_location = $log_dir . 'wp_oauth_server_errors.log';
-		$time          = gmdate( 'd-M-Y H:i:s' );
-		$message       = '[ ' . $time . ' UTC]: ' . print_r( $message, true ) . PHP_EOL; //phpcs:ignore -- This is in debug logs.
+		MO_OAuth_Server_Log_File::create_log_file_if_missing();
+		$file_location = MO_OAuth_Server_Log_File::get_log_file_path();
+
+		$time    = gmdate( 'd-M-Y H:i:s' );
+		$message = '[ ' . $time . ' UTC]: ' . print_r( $message, true ) . PHP_EOL; //phpcs:ignore -- This is in debug logs.
 
 		error_log( $message, 3, $file_location ); //phpcs:ignore -- This is in debug logs.
 	}

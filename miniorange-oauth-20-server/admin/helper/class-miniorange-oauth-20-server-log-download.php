@@ -43,10 +43,9 @@ class Miniorange_Oauth_20_Server_Log_Download {
 			return;
 		}
 
-		require_once MINIORANGE_OAUTH_20_SERVER_PLUGIN_DIR_PATH . 'admin/helper/constants/class-miniorange-oauth-20-server-oauth-constants.php';
+		require_once MINIORANGE_OAUTH_20_SERVER_PLUGIN_DIR_PATH . 'admin/helper/class-mo-oauth-server-log-file.php';
 
-		$upload_dir = wp_upload_dir();
-		$log_dir    = trailingslashit( $upload_dir['basedir'] ) . Miniorange_Oauth_20_Server_Oauth_Constants::ERROR_LOGS_DIR;
+		$log_dir = MO_OAuth_Server_Log_File::get_log_dir();
 
 		if ( ! file_exists( $log_dir ) ) {
 			wp_mkdir_p( $log_dir );
@@ -55,11 +54,12 @@ class Miniorange_Oauth_20_Server_Log_Download {
 		require_once MINIORANGE_OAUTH_20_SERVER_PLUGIN_DIR_PATH . 'admin/helper/class-mo-oauth-server-file-protection.php';
 		MO_OAuth_Server_File_Protection::mo_oauth_server_create_protection_files( $log_dir );
 
-		$file_name = $log_dir . 'wp_oauth_server_errors.log';
+		$file_name = MO_OAuth_Server_Log_File::get_log_file_path();
 
 		if ( ! file_exists( $file_name ) ) {
 			update_option( 'mo_oauth_server_message', 'Log file does not exist.' );
 			$this->utils->mo_oauth_show_error_message();
+			return;
 		}
 
 		$download_file_name = 'mo-server-log-' . gmdate( 'd-m-y-H-i-s' ) . '.log';

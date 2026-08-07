@@ -75,9 +75,9 @@ $mo_oauth_server_mcp_over_limit      = $mo_oauth_server_mcp_selected_count > 128
 						<input class="input" type="text" readonly value="<?php echo esc_attr( $mo_oauth_server_mcp_endpoint_url ); ?>" id="mo_mcp_endpoint_url">
 					</div>
 					<div class="control">
-						<button type="button" class="button is-blue is-outlined"
+						<button type="button" class="button is-blue is-outlined" data-tooltip="Copy"
 							onclick="navigator.clipboard.writeText(document.getElementById('mo_mcp_endpoint_url').value)">
-							<i class="fa-regular fa-copy"></i>
+							<i class="fa-regular fa-copy copy-tooltip"></i>
 						</button>
 					</div>
 				</div>

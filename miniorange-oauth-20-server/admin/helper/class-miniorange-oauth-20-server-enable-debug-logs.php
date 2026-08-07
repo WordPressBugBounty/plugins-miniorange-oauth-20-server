@@ -20,10 +20,9 @@ class Miniorange_Oauth_20_Server_Enable_Debug_Logs {
 	 * @return array{success:bool,message:string}
 	 */
 	public static function mo_oauth_server_try_enable_debug_logs() {
-		require_once MINIORANGE_OAUTH_20_SERVER_PLUGIN_DIR_PATH . 'admin/helper/constants/class-miniorange-oauth-20-server-oauth-constants.php';
+		require_once MINIORANGE_OAUTH_20_SERVER_PLUGIN_DIR_PATH . 'admin/helper/class-mo-oauth-server-log-file.php';
 
-		$upload_dir = wp_upload_dir();
-		$log_dir    = trailingslashit( $upload_dir['basedir'] ) . Miniorange_Oauth_20_Server_Oauth_Constants::ERROR_LOGS_DIR;
+		$log_dir = MO_OAuth_Server_Log_File::get_log_dir();
 
 		if ( ! file_exists( $log_dir ) ) {
 			$created = wp_mkdir_p( $log_dir );
@@ -53,7 +52,7 @@ class Miniorange_Oauth_20_Server_Enable_Debug_Logs {
 			);
 		}
 
-		$log_file = $log_dir . 'wp_oauth_server_errors.log';
+		$log_file = MO_OAuth_Server_Log_File::get_log_file_path();
 		if ( $wp_filesystem->exists( $log_file ) && ! $wp_filesystem->is_writable( $log_file ) ) {
 			update_option( 'mo_oauth_server_is_debug_enabled', 0, false );
 			return array(
@@ -61,6 +60,8 @@ class Miniorange_Oauth_20_Server_Enable_Debug_Logs {
 				'message' => 'Debug logs have been automatically disabled. The plugin does not have write permission for the error log file.',
 			);
 		}
+
+		MO_OAuth_Server_Log_File::create_log_file_if_missing();
 
 		update_option( 'mo_oauth_server_is_debug_enabled', 1, false );
 

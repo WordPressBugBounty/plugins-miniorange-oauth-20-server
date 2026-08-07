@@ -512,7 +512,7 @@ class Miniorange_Oauth_20_Server_Register_Abilities {
 					update_option( 'mo_oauth_server_is_debug_enabled', 0, false );
 					require_once MINIORANGE_OAUTH_20_SERVER_PLUGIN_DIR_PATH . 'admin/helper/class-miniorange-oauth-20-server-log-delete.php';
 					$debug_logs_delete = new Miniorange_Oauth_20_Server_Log_Delete();
-					$debug_logs_delete->mo_oauth_delete_debug_log_file();
+					$debug_logs_delete->mo_oauth_clear_debug_log_file();
 
 					return array(
 						'success' => true,

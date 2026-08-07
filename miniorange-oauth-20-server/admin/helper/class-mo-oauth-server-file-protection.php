@@ -28,18 +28,20 @@ class MO_OAuth_Server_File_Protection {
 	 */
 	private static function mo_oauth_server_create_index_php_file( $directory_path ) {
 
-		global $wp_filesystem;
-		if ( empty( $wp_filesystem ) ) {
-			require_once ABSPATH . '/wp-admin/includes/file.php';
-			WP_Filesystem();
-		}
-
 		$directory_path = trailingslashit( $directory_path );
 		$index_file = $directory_path . 'index.php';
 
-		$template_file = MINIORANGE_OAUTH_20_SERVER_PLUGIN_DIR_PATH . 'errorlogs/index.php';
-		$protection_content = $wp_filesystem->get_contents( $template_file );
+		if ( file_exists( $index_file ) ) {
+			return;
+		}
 
-		$wp_filesystem->put_contents( $index_file, $protection_content );
+		$template_file = MINIORANGE_OAUTH_20_SERVER_PLUGIN_DIR_PATH . 'errorlogs/index.php';
+		if ( ! file_exists( $template_file ) ) {
+			return;
+		}
+
+		$protection_content = file_get_contents( $template_file ); //phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_read_file_get_contents -- local plugin guard file, WP_Filesystem is unnecessary overhead on a front-end request path.
+
+		file_put_contents( $index_file, $protection_content ); //phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents -- see above.
 	}
 }
