@@ -10,7 +10,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-// Abilities API registration functions (wp_register_ability(), wp_register_ability_category(), wp_has_ability(), wp_has_ability_category(), wp_unregister_ability(), wp_unregister_ability_category()) require WP 6.9+; every call site below is guarded by a function_exists() check, so this file stays compatible with the plugin's "Requires at least: 4.8" header.
+// Abilities API registration functions (wp_register_ability(), wp_register_ability_category(), wp_has_ability(), wp_has_ability_category(), wp_unregister_ability(), wp_unregister_ability_category()) require WP 6.9+; every call site below is guarded by a function_exists() check, so this file stays compatible with the plugin's "Requires at least: 5.6" header.
 
 require_once MINIORANGE_OAUTH_20_SERVER_PLUGIN_DIR_PATH . 'admin/helper/constants/class-miniorange-oauth-20-server-oauth-constants.php';
 require_once MINIORANGE_OAUTH_20_SERVER_PLUGIN_DIR_PATH . 'admin/helper/class-miniorange-oauth-20-server-abilities-api-settings.php';

@@ -19,7 +19,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-// Abilities API calls (wp_get_abilities()/wp_get_ability()) require WP 6.9+; every call site below is guarded by a function_exists() check, so this file stays compatible with the plugin's "Requires at least: 4.8" header.
+// Abilities API calls (wp_get_abilities()/wp_get_ability()) require WP 6.9+; every call site below is guarded by a function_exists() check, so this file stays compatible with the plugin's "Requires at least: 5.6" header.
 
 /**
  * Class Miniorange_Oauth_20_Server_MCP

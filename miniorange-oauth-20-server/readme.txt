@@ -1,10 +1,10 @@
 === WP OAuth Server ( Login with WordPress ) ===
 Contributors: cyberlord92, nimeshatxecurify
 Tags: WordPress Login, OAuth Provider, OAuth Server, OAuth2, OpenID
-Requires at least: 4.8
-Tested up to: 7.0
-Requires PHP: 5.6
-Stable tag: 6.3.0
+Requires at least: 5.6
+Tested up to: 7.1
+Requires PHP: 7.2
+Stable tag: 6.3.1
 License: Expat
 License URI: https://plugins.miniorange.com/mit-license
 
@@ -173,6 +173,10 @@ Yes, you can enable/disable consent screen using the <a href="https://plugins.mi
 
 
 == Changelog ==
+
+= 6.3.1 =
+* Raised minimum requirements to WordPress 5.6 and PHP 7.2.
+* Removed the old, fixed-name legacy debug log file on admin init and cleaned up dead code tied to it.
 
 = 6.3.0 =
 * Fixed a security issue where the debug log file used a fixed, guessable name; it is now randomized per site, with cleanup for old log files.
@@ -472,6 +476,9 @@ Yes, you can enable/disable consent screen using the <a href="https://plugins.mi
 * Initial Release
 
 == Upgrade Notice ==
+
+= 6.3.1 =
+Minimum requirements are now WordPress 5.6 and PHP 7.2. If your site's debug logs were ever enabled on 6.2.1 or earlier, the old fixed-name log file is now automatically removed on admin load.
 
 = 6.3.0 =
 Security fix: the debug log file used a fixed, guessable name; it is now randomized per site. Update immediately if Debug Logs has ever been enabled.

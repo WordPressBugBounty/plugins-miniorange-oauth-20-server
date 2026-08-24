@@ -9,7 +9,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-// wp_get_wp_version() requires WP 6.7+; the call below is guarded by a function_exists() check with a get_bloginfo( 'version' ) fallback, so this file stays compatible with the plugin's "Requires at least: 4.8" header.
+// wp_get_wp_version() requires WP 6.7+; the call below is guarded by a function_exists() check with a get_bloginfo( 'version' ) fallback, so this file stays compatible with the plugin's "Requires at least: 5.6" header.
 
 /**
  * Class Miniorange_Oauth_20_Server_Abilities_Api_Settings

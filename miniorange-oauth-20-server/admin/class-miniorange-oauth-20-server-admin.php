@@ -193,6 +193,27 @@ class Miniorange_Oauth_20_Server_Admin {
 	}
 
 	/**
+	 * Deletes the legacy, fixed-name debug log file (<= 6.2.1), if present.
+	 *
+	 * @return void
+	 */
+	public function mo_oauth_server_admin_init_delete_legacy_log() {
+		global $wp_filesystem;
+
+		if ( ! $wp_filesystem ) {
+			require_once ABSPATH . 'wp-admin/includes/file.php';
+			WP_Filesystem();
+		}
+
+		require_once MINIORANGE_OAUTH_20_SERVER_PLUGIN_DIR_PATH . 'admin/helper/class-mo-oauth-server-log-file.php';
+		$legacy_log_file = MO_OAuth_Server_Log_File::get_log_dir() . 'wp_oauth_server_errors.log';
+
+		if ( $wp_filesystem->exists( $legacy_log_file ) ) {
+			$wp_filesystem->delete( $legacy_log_file );
+		}
+	}
+
+	/**
 	 * Summary of mo_oauth_server_autoloader
 	 *
 	 * Autoloader function for loading all helper classes.
@@ -371,9 +392,6 @@ class Miniorange_Oauth_20_Server_Admin {
 		}
 
 		require_once MINIORANGE_OAUTH_20_SERVER_PLUGIN_DIR_PATH . 'admin/helper/class-mo-oauth-server-log-file.php';
-		$legacy_log_file_exists = MO_OAuth_Server_Log_File::legacy_log_file_exists();
-		$legacy_log_file_name   = 'wp_oauth_server_errors.log';
-
 		MO_OAuth_Server_Log_File::create_log_file_if_missing();
 
 		require_once MINIORANGE_OAUTH_20_SERVER_PLUGIN_DIR_PATH . 'admin/views/miniorange-oauth-20-server-settings-troubleshooting.php';

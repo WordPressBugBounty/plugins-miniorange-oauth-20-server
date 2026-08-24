@@ -438,18 +438,6 @@ class Miniorange_Oauth_20_Server_Save_Settings {
 			}
 		}
 
-		// Form handler for deleting the legacy (pre-fix), fixed-name debug log file.
-		if ( isset( $_POST['mo_oauth_server_legacy_log_delete_form_nonce'] ) ) {
-			if ( ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['mo_oauth_server_legacy_log_delete_form_nonce'] ) ), 'mo_oauth_server_legacy_log_delete_form' ) ) {
-				wp_die( 'Invalid nonce detected.' );
-			}
-
-			if ( isset( $_POST['mo_oauth_server_delete_legacy_log'] ) && 'true' === sanitize_text_field( wp_unslash( $_POST['mo_oauth_server_delete_legacy_log'] ) ) ) {
-				$legacy_log_delete = new Miniorange_Oauth_20_Server_Log_Delete();
-				$legacy_log_delete->handle_legacy_log_delete();
-			}
-		}
-
 		// Form handler for feedback form.
 		if ( isset( $_POST['option'] ) && 'mo_oauth_server_skip_feedback' === sanitize_text_field( wp_unslash( $_POST['option'] ) ) && isset( $_REQUEST['mo_oauth_server_skip_feedback_form_field'] ) && wp_verify_nonce( sanitize_text_field( wp_unslash( $_REQUEST['mo_oauth_server_skip_feedback_form_field'] ) ), 'mo_oauth_server_skip_feedback_form' ) ) {
 			deactivate_plugins( MINIORANGE_OAUTH_20_SERVER_PLUGIN_DIR_PATH . 'mo_oauth_settings.php' );

@@ -3,7 +3,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-// wp_get_abilities() requires WP 6.9+; the call below is guarded by a function_exists() check, so this file stays compatible with the plugin's "Requires at least: 4.8" header.
+// wp_get_abilities() requires WP 6.9+; the call below is guarded by a function_exists() check, so this file stays compatible with the plugin's "Requires at least: 5.6" header.
 
 /**
  * MCP Settings admin view.

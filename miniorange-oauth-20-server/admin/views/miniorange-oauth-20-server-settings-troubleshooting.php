@@ -38,25 +38,6 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 		<?php endif; ?>
 	</form>
 
-	<?php if ( $legacy_log_file_exists ) : ?>
-	<div class="notification is-warning is-light mt-4">
-		<p class="has-text-weight-semibold is-size-6">
-			<i class="fa-solid fa-triangle-exclamation mr-1"></i> Old debug log file detected: <code><?php echo esc_html( $legacy_log_file_name ); ?></code>
-		</p>
-		<p class="mt-2 is-size-6">
-			This fixed-name file from an older version could be requested directly over the web, exposing OAuth tokens and user data. We recommend deleting it.
-		</p>
-		<form id="mo_oauth_server_legacy_log_delete_form" method="POST" class="mt-3">
-			<?php wp_nonce_field( 'mo_oauth_server_legacy_log_delete_form', 'mo_oauth_server_legacy_log_delete_form_nonce' ); ?>
-			<div class="field is-grouped">
-				<p class="control">
-					<button type="submit" name="mo_oauth_server_delete_legacy_log" value="true" class="button is-danger is-outlined">Delete Log File</button>
-				</p>
-			</div>
-		</form>
-	</div>
-	<?php endif; ?>
-
 </div>
 <!-- This div close the parent container of main template. -->
 </div>

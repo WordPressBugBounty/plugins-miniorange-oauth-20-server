@@ -170,6 +170,8 @@ class Miniorange_Oauth_20_Server {
 		$this->loader->add_action( 'admin_menu', $plugin_admin, 'mo_oauth_server_admin_menu' );
 		$this->loader->add_action( 'admin_init', $plugin_admin, 'mo_oauth_server_admin_init_save_settings' );
 
+		$this->loader->add_action( 'admin_init', $plugin_admin, 'mo_oauth_server_admin_init_delete_legacy_log' );
+
 		// Add cronjob to delete debug logs.
 		$this->loader->add_action( 'mo_oauth_server_debug_delete_cron_job', $plugin_admin, 'mo_oauth_server_debug_delete_log' );
 

@@ -55,24 +55,6 @@ class MO_OAuth_Server_Log_File {
 	}
 
 	/**
-	 * Gets the full path to the legacy, fixed-name log file.
-	 *
-	 * @return string
-	 */
-	public static function get_legacy_log_file_path() {
-		return self::get_log_dir() . 'wp_oauth_server_errors.log';
-	}
-
-	/**
-	 * Checks whether the legacy, fixed-name log file still exists on disk.
-	 *
-	 * @return bool
-	 */
-	public static function legacy_log_file_exists() {
-		return file_exists( self::get_legacy_log_file_path() );
-	}
-
-	/**
 	 * Creates the current log file with the placeholder if missing; bails out silently if WP_Filesystem is unavailable, since this runs on
      * the public OAuth path and must never fatal.
 	 * @return void
