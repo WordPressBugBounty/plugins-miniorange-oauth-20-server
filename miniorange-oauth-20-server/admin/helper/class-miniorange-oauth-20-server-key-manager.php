@@ -78,28 +78,52 @@ class Mo_Oauth_Server_Key_Manager {
 	}
 
 	/**
-	 * Generates a fresh key pair and updates all RS256 client rows in moos_oauth_public_keys.
-	 * Used for the admin-triggered "Rotate RSA Keys" action on existing installs.
+	 * Generates a fresh key pair per client and updates this site's RS256 rows in moos_oauth_public_keys.
+	 * Scoped to get_clients() so rotation never touches another site's keys.
 	 *
-	 * @return bool False if key generation failed (e.g. OpenSSL unavailable).
+	 * @return bool False if there are no clients to rotate, or if key generation/update fails.
 	 */
 	public static function rotate_rs256_clients() {
-		$keys = self::generate_key_pair();
-		if ( false === $keys ) {
+		require_once MINIORANGE_OAUTH_20_SERVER_PLUGIN_DIR_PATH . 'admin/helper/class-miniorange-oauth-20-server-db.php';
+		$mo_oauth_server_db = new Mo_Oauth_Server_Db();
+		$clients            = $mo_oauth_server_db->get_clients();
+
+		if ( empty( $clients ) ) {
 			return false;
 		}
 
 		global $wpdb;
-		//phpcs:ignore WordPress.DB.DirectDatabaseQuery
-		$wpdb->query(
-			$wpdb->prepare(
-				'UPDATE ' . $wpdb->base_prefix . "moos_oauth_public_keys SET public_key = %s, private_key = %s WHERE encryption_algorithm = 'RS256'",
-				$keys['public_key'],
-				$keys['private_key']
-			)
-		);
+		$rotated = false;
 
-		self::mark_keys_generated();
-		return true;
+		foreach ( $clients as $client ) {
+			$keys = self::generate_key_pair();
+			if ( false === $keys ) {
+				return false;
+			}
+
+			$result = $wpdb->update( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+				$wpdb->base_prefix . 'moos_oauth_public_keys',
+				array(
+					'public_key'  => $keys['public_key'],
+					'private_key' => $keys['private_key'],
+				),
+				array(
+					'client_id'            => $client->client_id,
+					'encryption_algorithm' => 'RS256',
+				),
+				array( '%s', '%s' ),
+				array( '%s', '%s' )
+			);
+
+			if ( false === $result ) {
+				return false;
+			}
+			$rotated = true;
+		}
+
+		if ( $rotated ) {
+			self::mark_keys_generated();
+		}
+		return $rotated;
 	}
 }

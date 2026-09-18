@@ -195,32 +195,10 @@ class Miniorange_Oauth_20_Server_Public {
 				}
 			}
 
-			$prompt_grant  = 'on';
-			$is_authorized = true;
-			$client_id     = $request->query( 'client_id' );
-			$grant_status  = is_null( $client_id ) ? false : get_user_meta( $current_user->ID, 'mo_oauth_server_granted_' . $client_id, true );
-			$prompt        = ( 'allow' === $grant_status && $request->query( 'prompt' ) !== 'consent' ) || ( 'deny' === $grant_status && 'allow' === $prompt ) ? 'allow' : 'consent';
-			if ( 'allow' === $prompt ) {
-				$grant_status = 'allow';
-			}
-			if ( 'allow' === $grant_status && 'consent' !== $prompt ) {
-				$is_authorized = true;
-			} elseif ( 'deny' === $grant_status && 'consent' !== $prompt ) {
-				$is_authorized = false;
-			} elseif ( false === $grant_status || 'consent' === $prompt ) {
-				$client_credentials = $server->getStorage( 'client_credentials' )->getClientDetails( $request->query( 'client_id' ) );
-				$scope_required     = $request->query( 'scope' );
-				$this->mo_oauth_server_render_consent_screen( $client_credentials, $scope_required );
-				exit();
-			}
-			$server->handleAuthorizeRequest( $request, $response, $is_authorized, $current_user->ID );
-
-			update_user_meta( $current_user->ID, 'mo_oauth_server_granted_' . $client_id, 'deny' );
-			$response->send();
-
-			MO_OAuth_Server_Debug::error_log( 'Authorization Endpoint execution done' );
-			MO_OAuth_Server_Debug::error_log( $response );
-
+			$client_id          = $request->query( 'client_id' );
+			$client_credentials = $server->getStorage( 'client_credentials' )->getClientDetails( $client_id );
+			$scope_required     = $request->query( 'scope' );
+			$this->mo_oauth_server_render_consent_screen( $client_credentials, $scope_required );
 			exit();
 		}
 	}
@@ -556,25 +534,48 @@ class Miniorange_Oauth_20_Server_Public {
 	 * @return void
 	 */
 	public function mo_oauth_server_validate_authorize_consent() {
-		if ( isset( $_REQUEST['client_id'] ) ) {
-			$user = $this->mo_oauth_server_check_user_login( sanitize_text_field( wp_unslash( $_REQUEST['client_id'] ) ) );
+		if ( isset( $_GET['state'] ) ) {
+			$_GET['state'] = stripslashes( $_GET['state'] ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.ValidatedSanitizedInput.MissingUnslash, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- OAuth state param from the authorization redirect, not a WP form nonce; unslashed only, validated downstream by the OAuth2 server library.
 		}
+
+		$request      = new Request( $_GET, array(), array(), $_COOKIE, array(), $_SERVER ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- OAuth authorization GET params consumed by the OAuth2 server library, not a WP form nonce.
+		$mo_client_id = $request->query( 'client_id' ) ? sanitize_text_field( wp_unslash( $request->query( 'client_id' ) ) ) : null;
+		$user         = $mo_client_id ? $this->mo_oauth_server_check_user_login( $mo_client_id ) : false;
+
 		if ( isset( $_POST['mo_oauth_server_authorize_dialog'] ) ) {
 			if ( ( isset( $_POST['mo_oauth_server_authorize_dialog_allow_form_field'] ) && wp_verify_nonce( sanitize_key( wp_unslash( $_POST['mo_oauth_server_authorize_dialog_allow_form_field'] ) ), 'mo_oauth_server_authorize_dialog_allow_form' ) ) ) {
 				if ( isset( $_POST['mo_oauth_server_authorize'] ) ) {
-					$response = sanitize_text_field( wp_unslash( $_POST['mo_oauth_server_authorize'] ) );
-					update_user_meta( $user->ID, 'mo_oauth_server_granted_' . sanitize_text_field( wp_unslash( $_REQUEST['client_id'] ) ), $response );
-					$current_url    = explode( '?', $this->mo_oauth_server_get_current_page_url() )[0];
-					$_GET['prompt'] = $response;
-					if ( isset( $_GET['state'] ) ) {
-						$_GET['state'] = stripslashes( $_GET['state'] ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Need to send state param as is.
+					$mo_choice = sanitize_text_field( wp_unslash( $_POST['mo_oauth_server_authorize'] ) );
+
+					if ( 'allow' !== $mo_choice ) {
+						wp_die( esc_html( Miniorange_Oauth_20_Server_Oauth_Constants::DENY_AUTHORIZATION ) );
 					}
-					wp_safe_redirect( $current_url . '?' . http_build_query( $_GET ) );
+
+					if ( ! $user ) {
+						wp_die( 'Invalid credentials. Please contact to your administrator.' );
+					}
+
+					$response = new Response();
+					$server   = $this->mo_oauth_server_init();
+
+					if ( ! $server->validateAuthorizeRequest( $request, $response ) ) {
+						MO_OAuth_Server_Debug::error_log( 'Authorization Endpoint - Authorization Request validation failed' );
+						MO_OAuth_Server_Debug::error_log( $response );
+						$response->send();
+						exit();
+					}
+
+					$server->handleAuthorizeRequest( $request, $response, true, $user->ID );
+					$response->send();
+
+					MO_OAuth_Server_Debug::error_log( 'Authorization Endpoint execution done' );
+					MO_OAuth_Server_Debug::error_log( $response );
+
+					exit();
 				}
 			} elseif ( ( isset( $_POST['mo_oauth_server_authorize_dialog_deny_form_field'] ) && wp_verify_nonce( sanitize_key( wp_unslash( $_POST['mo_oauth_server_authorize_dialog_deny_form_field'] ) ), 'mo_oauth_server_authorize_dialog_deny_form' ) ) ) {
-				$error_message = Miniorange_Oauth_20_Server_Oauth_Constants::DENY_AUTHORIZATION;
-				$client_id     = isset( $_REQUEST['client_id'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['client_id'] ) ) : null;
-				$registered_uri = $this->mo_oauth_server_get_registered_redirect_uri( $client_id );
+				$error_message  = Miniorange_Oauth_20_Server_Oauth_Constants::DENY_AUTHORIZATION;
+				$registered_uri = $this->mo_oauth_server_get_registered_redirect_uri( $mo_client_id );
 				if ( ! $registered_uri ) {
 					wp_die( esc_html( $error_message ) );
 				}

@@ -49,6 +49,7 @@ delete_option( 'mo_oauth_server_jwks_uri_hit_count' );
 delete_option( 'mo_oauth_server_site_keys_generated' );
 delete_option( 'mo_oauth_server_is_debug_enabled' );
 delete_option( 'mo_oauth_server_debug_log_filename' );
+delete_option( 'mo_oauth_server_current_id_token');
 
 require_once plugin_dir_path( __FILE__ ) . 'admin/helper/constants/class-miniorange-oauth-20-server-oauth-constants.php';
 

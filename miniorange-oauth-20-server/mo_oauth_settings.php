@@ -15,7 +15,7 @@
  * Plugin Name:       miniOrange OAuth 2.0 Server/Provider
  * Plugin URI:        https://www.miniorange.com
  * Description:       Setup your site as Identity Server to allow Login with WordPress or WordPress Login to other client application /site using OAuth / OpenID Connect protocols.
- * Version:           6.3.1
+ * Version:           6.4.0
  * Requires at least: 5.6
  * Requires PHP:      7.2
  * Author:            miniOrange
@@ -36,7 +36,7 @@ if ( ! defined( 'WPINC' ) ) {
  * Start at version 1.0.0 and use SemVer - https://semver.org
  * Rename this for your plugin and update it as you release new versions.
  */
-define( 'MINIORANGE_OAUTH_20_SERVER_VERSION', '6.3.1' );
+define( 'MINIORANGE_OAUTH_20_SERVER_VERSION', '6.4.0' );
 define( 'MOSERVER_BASENAME', plugin_basename( __FILE__ ));
 define( 'MINIORANGE_OAUTH_20_SERVER_PLUGIN_DIR_URL', plugin_dir_url( __FILE__ ) );
 define( 'MINIORANGE_OAUTH_20_SERVER_PLUGIN_DIR_PATH', plugin_dir_path( __FILE__ ) );
@@ -44,11 +44,13 @@ define( 'MINIORANGE_OAUTH_20_SERVER_PLUGIN_DIR_PATH', plugin_dir_path( __FILE__ 
 /**
  * The code that runs during plugin activation.
  * This action is documented in includes/class-miniorange-oauth-20-server-activator.php
+ *
+ * @param bool $network_wide True if the plugin is being activated network-wide.
  */
-function mo_oauth_server_activate() {
+function mo_oauth_server_activate( $network_wide = false ) {
 	require_once plugin_dir_path( __FILE__ ) . 'includes/class-miniorange-oauth-20-server-activator.php';
 	$activator = new Miniorange_Oauth_20_Server_Activator();
-	$activator->activate();
+	$activator->activate( $network_wide );
 }
 
 /**

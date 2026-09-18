@@ -290,7 +290,6 @@ class MoPdo implements
 		// convert expires to datestring.
 		$expires = gmdate( 'Y-m-d H:i:s', $expires );
 		global $wpdb;
-		update_option( 'mo_oauth_server_current_id_token', $id_token, false );
 
 		// if it exists, update it.
 		if ( $this->getAuthorizationCode( $code ) ) {

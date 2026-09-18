@@ -33,7 +33,7 @@ class Mo_Oauth_Server_Db {
 		//phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.SchemaChange,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
 		$wpdb->query( "CREATE TABLE IF NOT EXISTS `$esc_clients_table` (client_name VARCHAR(255), client_id VARCHAR(255), client_secret VARCHAR(255), redirect_uri VARCHAR(255), active_oauth_server_id INT);" );
 		$wpdb->query( "CREATE TABLE IF NOT EXISTS `$esc_access_tokens_table` (access_token VARCHAR(255), client_id VARCHAR(255), user_id INT, expires TIMESTAMP, scope VARCHAR(255));" );
-		$wpdb->query( "CREATE TABLE IF NOT EXISTS `$esc_auth_codes_table` (authorization_code VARCHAR(255), client_id VARCHAR(255), user_id INT, redirect_uri VARCHAR(255), expires TIMESTAMP, scope VARCHAR(255), id_token VARCHAR(255));" );
+		$wpdb->query( "CREATE TABLE IF NOT EXISTS `$esc_auth_codes_table` (authorization_code VARCHAR(255), client_id VARCHAR(255), user_id INT, redirect_uri VARCHAR(255), expires TIMESTAMP, scope VARCHAR(255), id_token TEXT);" );
 		$wpdb->query( "CREATE TABLE IF NOT EXISTS `$esc_refresh_tokens_table` (refresh_token VARCHAR(255), client_id VARCHAR(255), user_id INT, expires TIMESTAMP, scope VARCHAR(255));" );
 		$wpdb->query( "CREATE TABLE IF NOT EXISTS `$esc_scopes_table` (scope varchar(100), is_default BOOLEAN, UNIQUE (scope));" );
 		$wpdb->query( "CREATE TABLE IF NOT EXISTS `$esc_users_table` (username VARCHAR(100) NOT NULL, password VARCHAR(2000), first_name VARCHAR(255), last_name VARCHAR(255), CONSTRAINT username_pk PRIMARY KEY (username));" );
@@ -48,6 +48,12 @@ class Mo_Oauth_Server_Db {
 			if ( empty( $row ) ) {
 				$wpdb->query( $wpdb->prepare( 'ALTER TABLE ' . $wpdb->base_prefix . 'moos_oauth_clients ADD active_oauth_server_id INT DEFAULT %d', array( get_current_blog_id() ) ) );
 			}
+		}
+
+		// A VARCHAR(255) id_token column silently truncates real signed JWTs; widen existing installs to TEXT.
+		$id_token_type = $wpdb->get_var( $wpdb->prepare( "SELECT DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE table_schema = %s AND table_name = %s AND column_name = 'id_token'", array( DB_NAME, $esc_auth_codes_table ) ) );
+		if ( $id_token_type && 'text' !== strtolower( $id_token_type ) ) {
+			$wpdb->query( "ALTER TABLE `$esc_auth_codes_table` MODIFY id_token TEXT" );
 		}
 		//phpcs:enable
 	}
@@ -143,9 +149,22 @@ class Mo_Oauth_Server_Db {
 	 */
 	public function delete_client( $client_name, $client_id ) {
 		global $wpdb;
-		// Deleting public and private keys for JWT support.
+
+		// moos_oauth_public_keys has no tenant column, so only delete keys for a client this site actually owns.
 		 //phpcs:ignore WordPress.DB.DirectDatabaseQuery.SchemaChange,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
-		$wpdb->query( $wpdb->prepare( 'DELETE FROM ' . $wpdb->base_prefix . 'moos_oauth_public_keys WHERE client_id = %s', array( $client_id ) ) );
+		$owned_client_id = $wpdb->get_var(
+			$wpdb->prepare(
+				'SELECT client_id FROM ' . $wpdb->base_prefix . 'moos_oauth_clients WHERE client_id = %s AND client_name = %s AND active_oauth_server_id = %d',
+				$client_id,
+				$client_name,
+				get_current_blog_id()
+			)
+		);
+
+		if ( null !== $owned_client_id ) {
+			 //phpcs:ignore WordPress.DB.DirectDatabaseQuery.SchemaChange,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+			$wpdb->query( $wpdb->prepare( 'DELETE FROM ' . $wpdb->base_prefix . 'moos_oauth_public_keys WHERE client_id = %s', array( $owned_client_id ) ) );
+		}
 		 //phpcs:ignore WordPress.DB.DirectDatabaseQuery.SchemaChange,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
 		$del_clients = $wpdb->query( $wpdb->prepare( 'DELETE FROM ' . $wpdb->base_prefix . 'moos_oauth_clients WHERE client_name = %s and active_oauth_server_id= %d', $client_name, get_current_blog_id() ) );
 

@@ -54,14 +54,8 @@ class AuthorizationCode implements GrantTypeInterface {
 		if ( ! isset( $authCode['code'] ) ) {
 			$authCode['code'] = $code; // used to expire the code after the access token is granted
 		}
-		if ( $this->needsIdToken( $this->getScope( $authCode ) ) ) {
-			if ( isset( $authCode['id_token'] ) && $authCode['id_token'] !== '' ) {
-				$authCode['id_token'] = get_option( 'mo_oauth_server_current_id_token' ) ? get_option( 'mo_oauth_server_current_id_token' ) : '';
-			}
-		} else {
-			if ( isset( $authCode['id_token'] ) ) {
-				unset( $authCode['id_token'] );
-			}
+		if ( ! $this->needsIdToken( $this->getScope( $authCode ) ) ) {
+			unset( $authCode['id_token'] );
 		}
 
 		$this->authCode = $authCode;
