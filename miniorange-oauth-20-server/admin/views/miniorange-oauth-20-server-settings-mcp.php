@@ -12,9 +12,10 @@ if ( ! defined( 'ABSPATH' ) ) {
  * and select which WordPress Abilities to expose (to stay within ChatGPT's 128-tool limit).
  *
  * Variables injected by mo_oauth_server_handle_mcp_settings_page():
- *   $mcp_enabled   — 'checked' or ''
- *   $mcp_auth      — 'application_password' | 'oauth' | 'both'
- *   $mcp_abilities — array of currently selected ability slugs
+ *   $mcp_enabled     — bool
+ *   $mcp_dcr_enabled — bool
+ *   $mcp_auth        — 'application_password' | 'oauth' | 'both'
+ *   $mcp_abilities   — array of currently selected ability slugs
  *
  * @package    Miniorange_Oauth_20_Server
  * @subpackage Miniorange_Oauth_20_Server/admin/views
@@ -60,11 +61,11 @@ $mo_oauth_server_mcp_over_limit      = $mo_oauth_server_mcp_selected_count > 128
 		<div class="field mt-3">
 			<input id="mo_oauth_server_mcp_enabled" type="checkbox" name="mo_oauth_server_mcp_enabled"
 				class="switch is-rounded is-success"
-				<?php echo esc_attr( $mcp_enabled ); ?>
+				<?php checked( $mcp_enabled ); ?>
 				onchange="moOsSubmitForm('mo_oauth_server_mcp_enable_form')">
 			<label for="mo_oauth_server_mcp_enabled">Enable MCP</label>
 		</div>
-		<?php if ( 'checked' === $mcp_enabled ) : ?>
+		<?php if ( $mcp_enabled ) : ?>
 		<div class="columns mt-3">
 			<div class="column is-one-third">
 				<label class="label">MCP Endpoint URL:</label>
@@ -93,6 +94,32 @@ $mo_oauth_server_mcp_over_limit      = $mo_oauth_server_mcp_selected_count > 128
 		</div>
 		<?php endif; ?>
 	</form>
+
+	<?php if ( $mcp_enabled ) : ?>
+	<hr />
+
+	<!-- Dynamic Client Registration -->
+	<form method="post" action="" name="mo_oauth_server_mcp_dcr_form">
+		<?php wp_nonce_field( 'mo_oauth_server_mcp_dcr_form', 'mo_oauth_server_mcp_dcr_form_nonce' ); ?>
+		<h3 class="has-text-weight-semibold is-blue">Dynamic Client Registration (DCR)</h3>
+		<p class="mt-4 is-size-6">Lets an AI client register itself automatically when you connect it, instead of you creating the client first. Enable this only while connecting an AI client that registers automatically, such as Claude ("Register automatically"), Claude Code, Cursor, VS Code Copilot or Windsurf. It turns off by itself once a client has registered.</p>
+		<div class="field mt-3">
+			<input id="mo_oauth_server_mcp_dcr_enabled" type="checkbox" name="mo_oauth_server_mcp_dcr_enabled"
+				class="switch is-rounded is-success"
+				<?php checked( $mcp_dcr_enabled ); ?>
+				onchange="moOsSubmitForm('mo_oauth_server_mcp_dcr_form')">
+			<label for="mo_oauth_server_mcp_dcr_enabled">Enable Dynamic Client Registration</label>
+		</div>
+		<div class="notification is-info is-light mt-3">
+			<p class="is-size-6">
+				<i class="fa-solid fa-circle-info mr-1"></i>
+				Not required for most AI clients. Claude, Claude Code, ChatGPT, Cursor and VS Code Copilot also accept a client ID and secret that you create under
+				<a href="<?php echo esc_url( admin_url( 'admin.php?page=mo_oauth_server_settings&tab=config' ) ); ?>">Configure your Application</a>, which is more secure as registration stays closed.
+				Only redirect URIs of Claude, ChatGPT, Cursor, VS Code and local (localhost) callbacks can be registered.
+			</p>
+		</div>
+	</form>
+	<?php endif; ?>
 
 	<hr />
 

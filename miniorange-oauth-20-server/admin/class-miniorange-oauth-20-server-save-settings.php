@@ -202,12 +202,29 @@ class Miniorange_Oauth_20_Server_Save_Settings {
 		// MCP Enable / Disable toggle.
 		if ( isset( $_POST['mo_oauth_server_mcp_enable_form_nonce'] ) ) {
 			if ( ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['mo_oauth_server_mcp_enable_form_nonce'] ) ), 'mo_oauth_server_mcp_enable_form' ) ) {
-				wp_die( 'You are not allowed to perform this action' );
+				update_option( 'mo_oauth_server_message', 'Your session has expired. Please refresh the page and try again.', false );
+				$this->utils->mo_oauth_show_error_message();
+				return;
 			}
 
-			$value   = isset( $_POST['mo_oauth_server_mcp_enabled'] ) ? 'on' : 'off';
+			$value   = 'on' === $this->utils->mo_oauth_get_sanitized_post_value( 'mo_oauth_server_mcp_enabled' ) ? 'on' : 'off';
 			update_option( 'mo_oauth_server_mcp_enabled', $value, false );
 			$message = ( 'on' === $value ) ? 'MCP endpoint enabled successfully.' : 'MCP endpoint disabled successfully.';
+			update_option( 'mo_oauth_server_message', $message, false );
+			$this->utils->mo_oauth_show_success_message();
+		}
+
+		// MCP Dynamic Client Registration toggle.
+		if ( isset( $_POST['mo_oauth_server_mcp_dcr_form_nonce'] ) ) {
+			if ( ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['mo_oauth_server_mcp_dcr_form_nonce'] ) ), 'mo_oauth_server_mcp_dcr_form' ) ) {
+				update_option( 'mo_oauth_server_message', 'Your session has expired. Please refresh the page and try again.', false );
+				$this->utils->mo_oauth_show_error_message();
+				return;
+			}
+
+			$value   = 'on' === $this->utils->mo_oauth_get_sanitized_post_value( 'mo_oauth_server_mcp_dcr_enabled' );
+			update_option( 'mo_oauth_server_mcp_dcr_enabled', $value, false );
+			$message = $value ? 'Dynamic Client Registration enabled successfully.' : 'Dynamic Client Registration disabled successfully.';
 			update_option( 'mo_oauth_server_message', $message, false );
 			$this->utils->mo_oauth_show_success_message();
 		}
@@ -215,7 +232,9 @@ class Miniorange_Oauth_20_Server_Save_Settings {
 		// MCP Authorization Method.
 		if ( isset( $_POST['mo_oauth_server_mcp_auth_form_nonce'] ) ) {
 			if ( ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['mo_oauth_server_mcp_auth_form_nonce'] ) ), 'mo_oauth_server_mcp_auth_form' ) ) {
-				wp_die( 'You are not allowed to perform this action' );
+				update_option( 'mo_oauth_server_message', 'Your session has expired. Please refresh the page and try again.', false );
+				$this->utils->mo_oauth_show_error_message();
+				return;
 			}
 
 			$allowed_methods = array( 'application_password', 'oauth', 'both' );
@@ -231,7 +250,9 @@ class Miniorange_Oauth_20_Server_Save_Settings {
 		// MCP Allowed Abilities.
 		if ( isset( $_POST['mo_oauth_server_mcp_abilities_form_nonce'] ) ) {
 			if ( ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['mo_oauth_server_mcp_abilities_form_nonce'] ) ), 'mo_oauth_server_mcp_abilities_form' ) ) {
-				wp_die( 'You are not allowed to perform this action' );
+				update_option( 'mo_oauth_server_message', 'Your session has expired. Please refresh the page and try again.', false );
+				$this->utils->mo_oauth_show_error_message();
+				return;
 			}
 
 			$raw_abilities = isset( $_POST['mo_oauth_server_mcp_allowed_abilities'] ) && is_array( $_POST['mo_oauth_server_mcp_allowed_abilities'] )

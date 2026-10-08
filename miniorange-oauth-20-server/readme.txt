@@ -4,7 +4,7 @@ Tags: WordPress Login, OAuth Provider, OAuth Server, OAuth2, OpenID
 Requires at least: 5.6
 Tested up to: 7.1
 Requires PHP: 7.2
-Stable tag: 6.4.0
+Stable tag: 6.5.0
 License: Expat
 License URI: https://plugins.miniorange.com/mit-license
 
@@ -173,6 +173,10 @@ Yes, you can enable/disable consent screen using the <a href="https://plugins.mi
 
 
 == Changelog ==
+
+= 6.5.0 =
+* Fixed ID tokens being truncated on sites updated in place from an older version, which broke OpenID Connect logins. Database updates now run automatically after a plugin update.
+* Fixed a security issue where the MCP Dynamic Client Registration endpoint allowed unauthenticated client registration. Registration is now a separate setting that is off by default, turns off after a client registers, and only accepts redirect URIs of supported AI clients.
 
 = 6.4.0 =
 * Fixed a security issue where a user could end up receiving another user's OAuth token under certain conditions.
@@ -481,6 +485,9 @@ Yes, you can enable/disable consent screen using the <a href="https://plugins.mi
 * Initial Release
 
 == Upgrade Notice ==
+
+= 6.5.0 =
+Fixes OpenID Connect logins failing after updating to 6.4.0 because ID tokens were truncated, and a security issue in MCP Dynamic Client Registration. Update immediately.
 
 = 6.4.0 =
 Security fixes: addresses an OAuth token handling issue, a consent screen bypass, and restricts the plugin to a single active site in multisite networks. Update immediately.

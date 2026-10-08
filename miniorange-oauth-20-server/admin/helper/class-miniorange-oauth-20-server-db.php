@@ -13,13 +13,20 @@
 class Mo_Oauth_Server_Db {
 
 	/**
-	 * Summary of mo_plugin_activate
+	 * DB error from the last failed migration, captured before later queries clear $wpdb->last_error.
 	 *
-	 * Creates required tables on plugin activation.
+	 * @var string
+	 */
+	private $migration_error = '';
+
+	/**
+	 * Summary of mo_oauth_server_create_tables
+	 *
+	 * Creates the plugin tables if they do not exist.
 	 *
 	 * @return void
 	 */
-	public function mo_plugin_activate() {
+	public function mo_oauth_server_create_tables() {
 		global $wpdb;
 
 		$esc_clients_table         = esc_sql( $wpdb->base_prefix . 'moos_oauth_clients' );
@@ -41,21 +48,124 @@ class Mo_Oauth_Server_Db {
 		$wpdb->query( "CREATE TABLE IF NOT EXISTS `$esc_authorized_apps_table` (client_id TEXT, user_id INT);" );
 		$wpdb->query( $wpdb->prepare( "INSERT IGNORE INTO `$esc_scopes_table` (scope, is_default) VALUES (%s, %d), (%s, %d)", 'email', 1, 'profile', 0 ) );
 
-		// check if the table moos_oauth_clients is already exist.
-		$table_name = $wpdb->esc_like( $wpdb->base_prefix . 'moos_oauth_clients' );
-		if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table_name ) ) === $table_name ) {
-			$row = $wpdb->get_results( $wpdb->prepare( "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE table_schema = %s AND table_name = %s AND column_name ='active_oauth_server_id'", array( DB_NAME, $table_name ) ), ARRAY_A );
-			if ( empty( $row ) ) {
-				$wpdb->query( $wpdb->prepare( 'ALTER TABLE ' . $wpdb->base_prefix . 'moos_oauth_clients ADD active_oauth_server_id INT DEFAULT %d', array( get_current_blog_id() ) ) );
+		//phpcs:enable
+	}
+
+	/**
+	 * Summary of mo_oauth_server_check_db_version
+	 *
+	 * Creates the tables and runs the DB migrations newer than the stored DB version, since activation hooks do not fire on plugin updates.
+	 *
+	 * @return void
+	 */
+	public function mo_oauth_server_check_db_version() {
+		global $wpdb;
+
+		if ( wp_doing_ajax() ) {
+			return;
+		}
+
+		$old_version = get_site_option( 'mo_oauth_server_db_version' );
+
+		if ( ! empty( $old_version ) && version_compare( $old_version, MINIORANGE_OAUTH_20_SERVER_DB_VERSION, '>=' ) ) {
+			return;
+		}
+
+		$auth_codes_table = $wpdb->base_prefix . 'moos_oauth_authorization_codes';
+		$is_fresh_install = $auth_codes_table !== $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $wpdb->esc_like( $auth_codes_table ) ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+
+		$this->mo_oauth_server_create_tables();
+
+		if ( empty( $old_version ) && $is_fresh_install ) {
+			update_site_option( 'mo_oauth_server_db_version', MINIORANGE_OAUTH_20_SERVER_DB_VERSION );
+			return;
+		}
+
+		if ( version_compare( $old_version, '1.0', '<' ) ) {
+			if ( ! $this->mo_oauth_server_add_active_oauth_server_id_column() ) {
+				$this->mo_oauth_server_show_migration_error( 'Clients could not be linked to this site.' );
+				return;
 			}
 		}
 
-		// A VARCHAR(255) id_token column silently truncates real signed JWTs; widen existing installs to TEXT.
-		$id_token_type = $wpdb->get_var( $wpdb->prepare( "SELECT DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE table_schema = %s AND table_name = %s AND column_name = 'id_token'", array( DB_NAME, $esc_auth_codes_table ) ) );
-		if ( $id_token_type && 'text' !== strtolower( $id_token_type ) ) {
-			$wpdb->query( "ALTER TABLE `$esc_auth_codes_table` MODIFY id_token TEXT" );
+		if ( version_compare( $old_version, '1.1', '<' ) ) {
+			if ( ! $this->mo_oauth_server_widen_id_token_column() ) {
+				$this->mo_oauth_server_show_migration_error( 'ID tokens may be truncated.' );
+				return;
+			}
+		}
+
+		update_site_option( 'mo_oauth_server_db_version', MINIORANGE_OAUTH_20_SERVER_DB_VERSION );
+	}
+
+	/**
+	 * Summary of mo_oauth_server_show_migration_error
+	 *
+	 * Shows an admin notice for a failed DB migration.
+	 *
+	 * @param string $message what the failure affects.
+	 * @return void
+	 */
+	private function mo_oauth_server_show_migration_error( $message ) {
+		require_once MINIORANGE_OAUTH_20_SERVER_PLUGIN_DIR_PATH . 'admin/helper/class-miniorange-oauth-20-server-utils.php';
+		$error = '' !== $this->migration_error ? ' Error: ' . $this->migration_error : '';
+		update_option( 'mo_oauth_server_message', 'miniOrange OAuth Server: database update failed. ' . $message . ' Please grant the database user ALTER privilege on the plugin tables.' . $error, false );
+		( new Miniorange_Oauth_20_Server_Utils() )->mo_oauth_show_error_message();
+	}
+
+	/**
+	 * Summary of mo_oauth_server_add_active_oauth_server_id_column
+	 *
+	 * Adds the active_oauth_server_id column to the clients table on installs that predate it.
+	 *
+	 * @return bool True if the column exists, false otherwise.
+	 */
+	private function mo_oauth_server_add_active_oauth_server_id_column() {
+		global $wpdb;
+
+		$esc_clients_table = esc_sql( $wpdb->base_prefix . 'moos_oauth_clients' );
+		//phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.SchemaChange,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+		if ( $wpdb->get_row( "SHOW COLUMNS FROM `$esc_clients_table` LIKE 'active_oauth_server_id'" ) ) {
+			return true;
+		}
+		if ( false === $wpdb->query( $wpdb->prepare( "ALTER TABLE `$esc_clients_table` ADD active_oauth_server_id INT DEFAULT %d", get_current_blog_id() ) ) ) {
+			$this->migration_error = $wpdb->last_error;
+			return false;
 		}
 		//phpcs:enable
+		return true;
+	}
+
+	/**
+	 * Summary of mo_oauth_server_widen_id_token_column
+	 *
+	 * Widens the id_token column to TEXT, as VARCHAR(255) truncates signed JWTs.
+	 *
+	 * @return bool True if the id_token column is TEXT, false otherwise.
+	 */
+	private function mo_oauth_server_widen_id_token_column() {
+		global $wpdb;
+
+		$esc_auth_codes_table = esc_sql( $wpdb->base_prefix . 'moos_oauth_authorization_codes' );
+		// SHOW COLUMNS only needs privileges on our own table, unlike INFORMATION_SCHEMA which may be restricted or not match DB_NAME.
+		//phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.SchemaChange,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+		$id_token_column = $wpdb->get_row( "SHOW COLUMNS FROM `$esc_auth_codes_table` LIKE 'id_token'" );
+		if ( ! $id_token_column ) {
+			$this->migration_error = $wpdb->last_error;
+		} elseif ( 'text' !== strtolower( $id_token_column->Type ) ) {
+			if ( false === $wpdb->query( "ALTER TABLE `$esc_auth_codes_table` MODIFY id_token TEXT" ) ) {
+				$this->migration_error = $wpdb->last_error;
+			}
+			$id_token_column = $wpdb->get_row( "SHOW COLUMNS FROM `$esc_auth_codes_table` LIKE 'id_token'" );
+		}
+
+		$is_text = $id_token_column && 'text' === strtolower( $id_token_column->Type );
+		//phpcs:enable
+		if ( ! $is_text ) {
+			require_once MINIORANGE_OAUTH_20_SERVER_PLUGIN_DIR_PATH . 'errorlogs/class-mo-oauth-server-debug.php';
+			MO_OAuth_Server_Debug::error_log( 'Unable to widen id_token column to TEXT. ' . $this->migration_error );
+		}
+		return $is_text;
 	}
 
 	/**

@@ -214,6 +214,20 @@ class Miniorange_Oauth_20_Server_Admin {
 	}
 
 	/**
+	 * Runs pending DB migrations on 'admin_init' for users who can manage options, so only they see a failure notice.
+	 *
+	 * @return void
+	 */
+	public function mo_oauth_server_check_db_version() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+		require_once MINIORANGE_OAUTH_20_SERVER_PLUGIN_DIR_PATH . 'admin/helper/class-miniorange-oauth-20-server-db.php';
+		$mo_oauth_server_db = new Mo_Oauth_Server_Db();
+		$mo_oauth_server_db->mo_oauth_server_check_db_version();
+	}
+
+	/**
 	 * Summary of mo_oauth_server_autoloader
 	 *
 	 * Autoloader function for loading all helper classes.
@@ -403,8 +417,9 @@ class Miniorange_Oauth_20_Server_Admin {
 	 * @return void
 	 */
 	public function mo_oauth_server_handle_mcp_settings_page() {
-		$mcp_enabled   = ( 'on' === get_option( 'mo_oauth_server_mcp_enabled', 'off' ) ) ? 'checked' : '';
-		$mcp_auth      = get_option( 'mo_oauth_server_mcp_auth_method', 'both' );
+		$mcp_enabled     = 'on' === get_option( 'mo_oauth_server_mcp_enabled', 'off' );
+		$mcp_dcr_enabled = Miniorange_Oauth_20_Server_MCP::is_dcr_enabled();
+		$mcp_auth        = get_option( 'mo_oauth_server_mcp_auth_method', 'both' );
 		$mcp_abilities = get_option( 'mo_oauth_server_mcp_allowed_abilities', array() );
 		if ( ! is_array( $mcp_abilities ) ) {
 			$mcp_abilities = array();

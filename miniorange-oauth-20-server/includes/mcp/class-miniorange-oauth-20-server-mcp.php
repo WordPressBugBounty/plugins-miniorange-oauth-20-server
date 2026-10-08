@@ -53,6 +53,18 @@ class Miniorange_Oauth_20_Server_MCP {
 	const ERR_ACCESS_DENIED = -32001;
 
 	/**
+	 * Redirect URIs that Dynamic Client Registration accepts, besides loopback ones.
+	 */
+	const DCR_ALLOWED_REDIRECT_URIS = array(
+		'https://claude.ai/api/mcp/auth_callback',
+		'https://claude.com/api/mcp/auth_callback',
+		'https://chatgpt.com/connector_platform_oauth_redirect',
+		'cursor://anysphere.cursor-mcp/oauth/callback',
+		'https://vscode.dev/redirect',
+		'https://insiders.vscode.dev/redirect',
+	);
+
+	/**
 	 * Register the MCP REST route.
 	 *
 	 * @return void
@@ -115,21 +127,34 @@ class Miniorange_Oauth_20_Server_MCP {
 			)
 		);
 
-		// RFC 7591 — OAuth 2.0 Dynamic Client Registration.
-		// Claude.ai (unlike ChatGPT) has no field to enter a pre-registered client_id/secret;
-		// it self-registers by POSTing here. Without this route Claude cannot connect.
-		register_rest_route(
-			self::REST_NS,
-			'/mcp/register',
-			array(
-				'methods'             => 'POST',
-				'callback'            => array( __CLASS__, 'handle_register' ),
-				'permission_callback' => '__return_true',
-			)
-		);
+		// RFC 7591 — OAuth 2.0 Dynamic Client Registration, for AI clients that self-register
+		// instead of using a pre-registered client_id/secret. Unauthenticated by design, so it is
+		// only exposed while the admin has DCR enabled.
+		if ( self::is_dcr_enabled() ) {
+			register_rest_route(
+				self::REST_NS,
+				'/mcp/register',
+				array(
+					'methods'             => 'POST',
+					'callback'            => array( __CLASS__, 'handle_register' ),
+					'permission_callback' => '__return_true',
+				)
+			);
+		}
 
 		// Add WWW-Authenticate to 401 responses so clients find the metadata URL.
 		add_filter( 'rest_post_dispatch', array( __CLASS__, 'add_www_authenticate_header' ), 10, 3 );
+	}
+
+	/**
+	 * Whether Dynamic Client Registration is enabled.
+	 *
+	 * Strict check, so a stored 'off' or '0' never counts as enabled.
+	 *
+	 * @return bool
+	 */
+	public static function is_dcr_enabled() {
+		return filter_var( get_option( 'mo_oauth_server_mcp_dcr_enabled', false ), FILTER_VALIDATE_BOOLEAN );
 	}
 
 	/**
@@ -141,17 +166,23 @@ class Miniorange_Oauth_20_Server_MCP {
 	private static function get_as_metadata_array( $issuer = '' ) {
 		$base   = rtrim( rest_url( self::REST_NS ), '/' );
 		$issuer = '' !== $issuer ? rtrim( $issuer, '/' ) : $base;
-		return array(
+		$metadata = array(
 			'issuer'                                => $issuer,
 			'authorization_endpoint'               => $base . '/authorize',
 			'token_endpoint'                        => $base . '/token',
-			'registration_endpoint'                => $base . '/mcp/register',
 			'response_types_supported'             => array( 'code' ),
 			'grant_types_supported'                => array( 'authorization_code', 'refresh_token' ),
 			'token_endpoint_auth_methods_supported' => array( 'client_secret_post', 'client_secret_basic' ),
 			'code_challenge_methods_supported'     => array( 'S256' ),
 			'scopes_supported'                     => array( 'openid', 'email', 'profile' ),
 		);
+
+		// Advertise registration only while DCR is enabled, so clients fall back to pre-registered credentials.
+		if ( self::is_dcr_enabled() ) {
+			$metadata['registration_endpoint'] = $base . '/mcp/register';
+		}
+
+		return $metadata;
 	}
 
 	/**
@@ -250,12 +281,12 @@ class Miniorange_Oauth_20_Server_MCP {
 	public static function handle_register( WP_REST_Request $request ) {
 		MO_OAuth_Server_Debug::error_log( 'MCP Dynamic Client Registration - request received.' );
 
-		if ( 'on' !== get_option( 'mo_oauth_server_mcp_enabled', 'off' ) ) {
-			MO_OAuth_Server_Debug::error_log( 'MCP DCR - rejected: MCP is disabled.' );
+		if ( 'on' !== get_option( 'mo_oauth_server_mcp_enabled', 'off' ) || ! self::is_dcr_enabled() ) {
+			MO_OAuth_Server_Debug::error_log( 'MCP DCR - rejected: MCP or Dynamic Client Registration is disabled.' );
 			return new WP_REST_Response(
 				array(
 					'error'             => 'access_denied',
-					'error_description' => 'MCP functionality is not enabled on this server.',
+					'error_description' => 'Dynamic Client Registration is not enabled on this server.',
 				),
 				403
 			);
@@ -266,22 +297,25 @@ class Miniorange_Oauth_20_Server_MCP {
 			$metadata = array();
 		}
 
+		// Keep only the redirect URIs of known AI clients, so a registered client cannot send codes elsewhere.
 		$redirect_uris = array();
 		if ( isset( $metadata['redirect_uris'] ) && is_array( $metadata['redirect_uris'] ) ) {
 			foreach ( $metadata['redirect_uris'] as $uri ) {
-				$uri = esc_url_raw( trim( (string) $uri ) );
-				if ( '' !== $uri ) {
+				$uri = is_string( $uri ) ? trim( $uri ) : '';
+				if ( self::is_allowed_dcr_redirect_uri( $uri ) ) {
 					$redirect_uris[] = $uri;
+				} else {
+					MO_OAuth_Server_Debug::error_log( 'MCP DCR - dropped redirect_uri not in allowlist: ' . $uri );
 				}
 			}
 		}
 
 		if ( empty( $redirect_uris ) ) {
-			MO_OAuth_Server_Debug::error_log( 'MCP DCR - rejected: no valid redirect_uris supplied.' );
+			MO_OAuth_Server_Debug::error_log( 'MCP DCR - rejected: no allowed redirect_uris supplied.' );
 			return new WP_REST_Response(
 				array(
 					'error'             => 'invalid_redirect_uri',
-					'error_description' => 'At least one redirect_uri is required.',
+					'error_description' => 'At least one redirect_uri of a supported AI client is required.',
 				),
 				400
 			);
@@ -344,6 +378,8 @@ class Miniorange_Oauth_20_Server_MCP {
 
 		MO_OAuth_Server_Debug::error_log( 'MCP DCR - registered client_id: ' . $client_id . ' (name: ' . $client_name . ')' );
 
+		update_option( 'mo_oauth_server_mcp_dcr_enabled', false, false );
+
 		return new WP_REST_Response(
 			array(
 				'client_id'                  => $client_id,
@@ -359,6 +395,31 @@ class Miniorange_Oauth_20_Server_MCP {
 			),
 			201
 		);
+	}
+
+	/**
+	 * Checks a DCR redirect URI against the allowlist, accepting loopback URIs on any port.
+	 *
+	 * @param string $uri Redirect URI from the registration request.
+	 * @return bool
+	 */
+	private static function is_allowed_dcr_redirect_uri( $uri ) {
+		// Redirect URIs are stored space-separated, so whitespace could inject extra URIs.
+		if ( '' === $uri || preg_match( '/\s/', $uri ) ) {
+			return false;
+		}
+
+		if ( in_array( $uri, self::DCR_ALLOWED_REDIRECT_URIS, true ) ) {
+			return true;
+		}
+
+		// ChatGPT's per-connector callback form.
+		if ( preg_match( '#^https://chatgpt\.com/connector/oauth/[A-Za-z0-9_-]+$#', $uri ) ) {
+			return true;
+		}
+
+		// Loopback callbacks of desktop clients (Claude Code, Cursor, VS Code, Windsurf), any port.
+		return (bool) preg_match( '#^http://(localhost|127\.0\.0\.1|\[::1\])(:[0-9]{1,5})?(/[A-Za-z0-9._~/-]*)?$#', $uri );
 	}
 
 	/**
